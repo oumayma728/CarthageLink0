@@ -1,0 +1,40 @@
+# 🔹 Build / Output directories
+bin/
+obj/
+
+# 🔹 User-specific files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# 🔹 Logs / Database / Secrets
+logs/
+*.log
+appsettings.Development.json
+secrets.json
+
+# 🔹 Package dependencies
+node_modules/
+packages/
+*.nupkg
+project.lock.json
+project.assets.json
+
+# 🔹 Docker
+.dockerignore
+Dockerfile
+docker-compose*
+
+# 🔹 IDE / Editor-specific files
+.idea/
+*.vscode/
+
+# 🔹 Resharper / Rider
+*.DotSettings.user
+*.sln.DotSettings
+
+# 🔹 OS-specific files
+Thumbs.db
+*.DS_Store

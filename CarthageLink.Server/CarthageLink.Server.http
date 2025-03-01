@@ -1,0 +1,6 @@
+@CarthageLink.Server_HostAddress = http://localhost:5032
+
+GET {{CarthageLink.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

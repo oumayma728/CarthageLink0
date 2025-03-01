@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "mongodb1": {
+      "containerPorts": "8040:27017",
+      "secretStore": "LocalSecretsFile",
+      "containerName": "live619_DB",
+      "containerImage": "mongodb/mongodb-community-server",
+      "type": "mongodb.container",
+      "connectionId": "ConnectionStrings:DatabaseConnection",
+      "dynamicId": null
+    }
+  }
+}
