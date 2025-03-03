@@ -53,21 +53,21 @@ namespace CarthageLink.Server.Services
         // Create User
         public async Task CreateSuperAdminUserAsync(User user)
         {
-            if (user == null || string.IsNullOrEmpty(user.LicenseKey))
+            if (user == null || string.IsNullOrEmpty(user.LicenceKey))
                 throw new Exception("License Key is required for Factory Admin registration.");
 
             // Step 1: Validate the License Key
-            var license = await _licenseRepository.GetLicenseByKeyAsync(user.LicenseKey);
+            var license = await _licenseRepository.GetLicenseByKeyAsync(user.LicenceKey);
             /*if (license == null)
             {
                 Console.WriteLine($"License not found for key: {user.LicenseKey}");
                 throw new Exception("Invalid or inactive license key.");
             }*/
             // Step 2: Assign FactoryId and Role if it's a Factory Admin
-            if (user.UserRole == UserRole.FactoryAdmin)
-            {
+            //if (user.UserRole == UserRole.FactoryAdmin)
+            //{
                 user.FactoryId = license.AssignedTo;
-            }
+            //}
 
             // Step 3: Hash the Password before storing
             user.PasswordHash = HashPassword(user.PasswordHash);

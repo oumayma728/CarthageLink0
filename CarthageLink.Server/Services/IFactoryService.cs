@@ -37,7 +37,7 @@ namespace CarthageLink.Server.Services
         }
 
 
-        private string GenerateLicenseKey()
+        private string GenerateLicenceKey()
         {
             return Guid.NewGuid().ToString("N").ToUpper(); // Generates a random 32-character key
         }
@@ -48,10 +48,10 @@ namespace CarthageLink.Server.Services
         // Create Factory
         public async Task<string> CreateFactoryAsync(Factory factory)
         {
-            string licenseKey = GenerateLicenseKey();
-
-            await _factoryRepository.RegisterFactoryAsync(factory,licenseKey);
-            return licenseKey;
+            string licenceKey = GenerateLicenceKey();
+            factory.LicenceKey = licenceKey;
+            await _factoryRepository.RegisterFactoryAsync(factory,licenceKey);
+            return licenceKey;
 
         }
 

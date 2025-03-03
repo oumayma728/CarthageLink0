@@ -21,10 +21,11 @@ namespace CarthageLink.Server.Models
         [BsonElement("AdminId")]
         [BsonRepresentation(BsonType.ObjectId)] 
         public string ? FactoryAdminId { get; set; }
+        [BsonElement("assignedDevices")]
+        public List<string>? AssignedDevices { get; set; }
 
         [BsonElement("licenceKey")]
-        [BsonRepresentation(BsonType.ObjectId)] 
-        public string ? licenceKey { get; set; }
+        public string? LicenceKey { get; set; }
 
     }
 }

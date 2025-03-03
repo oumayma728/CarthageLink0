@@ -3,6 +3,13 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 namespace CarthageLink.Server.Models
 {
+    public enum LicenseStatus
+    {
+        Active,
+        Expired,
+        Suspended,
+        Pending
+    }
     public class License
     {
         [BsonId]
@@ -24,8 +31,8 @@ namespace CarthageLink.Server.Models
 
         [BsonElement("devices")]
         public List<string> Devices { get; set; } = new List<string>();
-        [BsonElement("role")]
-        public string? role { get; set; }
+        [BsonElement("userRole")]
+        public string? userRole { get; set; }
         [BsonElement("status")]
         public string? Status { get; set; }
         [BsonElement("createdAt")]

@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CarthageLink.Server.Models;
+using CarthageLink.Server.Repositories;
+using CarthageLink.Server.Services;
+using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -8,11 +11,19 @@ namespace CarthageLink.Server.Controllers
     [ApiController]
     public class DeviceController : ControllerBase
     {
-        // GET: api/<DeviceController>
-        [HttpGet]
-        public IEnumerable<string> Get()
+            //private readonly IFactoryService _factoryService;
+            private readonly IDeviceRepository _deviceRepository;
+
+            public DeviceController(/*IFactoryService factoryService,*/ IDeviceRepository deviceRepository)
+            {
+                //_factoryService = factoryService;
+                _deviceRepository = deviceRepository;
+            }
+            // GET: api/<DeviceController>
+            [HttpGet]
+        public async Task <ActionResult<List<Device>>> GetAllDevices()
         {
-            return new string[] { "value1", "value2" };
+           return await _deviceRepository.GetAllDevices();
         }
 
         // GET api/<DeviceController>/5

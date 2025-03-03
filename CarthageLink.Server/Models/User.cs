@@ -35,7 +35,7 @@ namespace CarthageLink.Server.Models
         [BsonElement("assignedDevices")]
         public List<string>? AssignedDevices { get; set; }
 
-        [BsonElement("licenseKey")]
-        public required string LicenseKey { get; set; }
+        [BsonElement("LicenceKey")]
+        public required string LicenceKey { get; set; }
     }
 }

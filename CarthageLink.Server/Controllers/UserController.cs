@@ -18,7 +18,7 @@ namespace CarthageLink.Server.Controllers
         private readonly IUserService _userService;
         private readonly IUserRepository _userRepository; // Declare _userRepository
 
-        // ✅ Corrected: Inject both services properly
+        // Inject both services
         public UserController(IUserService userService, IUserRepository userRepository)
         {
             _userService = userService;
@@ -27,9 +27,9 @@ namespace CarthageLink.Server.Controllers
 
         // GET: api/User
         [HttpGet]
-        public async Task<ActionResult<List<User>>> GetAllUsers()
+        public async Task<ActionResult<List<User>>> GetAllUsers() // return list of users
         {
-            var users = await _userRepository.GetAllUsersAsync(); // ✅ Use instance, not class name
+            var users = await _userRepository.GetAllUsersAsync(); 
             return Ok(users);
         }
 
