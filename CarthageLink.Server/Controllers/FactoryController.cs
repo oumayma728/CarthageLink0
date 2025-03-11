@@ -23,35 +23,12 @@ namespace CarthageLink.Server.Controllers
         }
         // GET all factories for SuperAdmin 
         [HttpGet("all")]
-       // [Authorize(Roles = "SuperAdmin")]
+       //[Authorize(Roles = "SuperAdmin")]
 
         public async Task<ActionResult<List<Factory>>> GetAllFactories()
         {
             var factories = await _factoryRepository.GetAllFactoriesAsync();
             return Ok(factories);
-        }
-        //Get Factory for Factory Admin
-        [HttpGet()]
-        //[Authorize(Roles = "FactoryAdmin")]
-        public async Task<ActionResult<Factory>> GetMyFactory()
-        {
-            // 🔹 Extract FactoryAdmin ID from JWT instead of NameIdentifier
-            var factoryAdminId = User.FindFirst("FactoryAdmin")?.Value;
-
-            if (factoryAdminId == null)
-            {
-                return Unauthorized("FactoryAdmin ID not found.");
-            }
-
-            // 🔹 Find the factory linked to this FactoryAdmin
-            var factory = await _factoryService.GetFactoryByAdminIdAsync(factoryAdminId);
-
-            if (factory == null)
-            {
-                return NotFound("Factory not found for this admin.");
-            }
-
-            return Ok(factory);
         }
 
         // GET api/Factory/{id}
@@ -68,7 +45,7 @@ namespace CarthageLink.Server.Controllers
         }
 
         // POST api/Factory
-        [HttpPost("Super-admin/create-factory")]
+        [HttpPost("create-factory")]
         //[Authorize(Roles = "SuperAdmin")]
 
         public async Task<IActionResult> CreateFactory([FromBody] Factory factory)
@@ -77,10 +54,10 @@ namespace CarthageLink.Server.Controllers
             {
                 return BadRequest("Factory data is required.");
             }
-            var licenseKey = await _factoryService.CreateFactoryAsync(factory);
+            await _factoryService.CreateFactoryAsync(factory, licenseKey);
 
 
-            return Ok(new { message = "Factory created successfully.", licenseKey });
+            return Ok(new { message = "Factory created successfully."});
         }
 
         // PUT api/Factory/{id}
@@ -171,9 +148,21 @@ namespace CarthageLink.Server.Controllers
                 return Forbid("You can only access devices from your own factory.");
             }
 
-            // 🔹 Fetch and return devices belonging to this factory
-            var devices = await _factoryService.GetFactoryDevicesAsync(id);
-            return Ok(devices);
+            try
+            {
+                var devices = await _factoryService.GetFactoryDevicesAsync(id);
+                if (devices == null || !devices.Any())
+                {
+                    return NotFound($"No devices found for factory with id {id}.");
+                }
+
+                return Ok(devices);
+            }
+            catch
+            {
+                // Return a generic error message if an exception occurs
+                return StatusCode(500, "An error occurred while fetching the devices.");
+            }
         }
 
     } }

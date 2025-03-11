@@ -1,32 +1,78 @@
-﻿using CarthageLink.Server.Models;
+﻿using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using CarthageLink.Server.Data;
+using CarthageLink.Server.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace CarthageLink.Server.Repositories
 {
     public interface IDeviceRepository
     {
-        Task<List<Device>> GetDevicesByFactoryIdAsync(string factoryId);
-        Task<List<Device>> GetAllDevices();
-
+        Task<IEnumerable<Device>> GetAllDevicesAsync();
+        Task<IEnumerable<Device>> GetDevicesByFactoryIdAsync(string factoryId);
+        Task UpdateDeviceAsync(Device updatedDevice);
+        Task CreateDeviceAsync(Device device);
+        Task DeleteDeviceAsync(string deviceId);
+        Task<Device> GetDeviceByIdAsync(string deviceId);
     }
     public class DeviceRepository : IDeviceRepository
     {
         private readonly IMongoCollection<Device> _device;
+        private readonly IMongoCollection<Models.License> _Licence;
 
-
-        public DeviceRepository(IMongoDatabase database)
+        //Constructor
+        public DeviceRepository (IOptions<DatabaseSettings> settings)
         {
-            _device = database.GetCollection<Device>("Devices");
+            var mongoClient = new MongoClient(settings.Value.Connection);
+            var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
+            _device = mongoDb.GetCollection<Device>("Device");
 
         }
-        public async Task<List<Device>> GetDevicesByFactoryIdAsync(string factoryId)
+
+        public async Task<IEnumerable<Device>> GetAllDevicesAsync()
+        {
+            return await _device.Find(factory => true).ToListAsync();//Find all users and converts the result to a list
+
+        }
+        public async Task<IEnumerable<Device>> GetDevicesByFactoryIdAsync(string factoryId)
         {
             return await _device.Find(device => device.FactoryId == factoryId).ToListAsync();
         }
-        public async Task<List<Device>> GetAllDevices()
+        public async Task<Device> GetDeviceByIdAsync(string deviceId)
         {
-             return await _device.Find(factory => true).ToListAsync();//Find all users and converts the result to a list
-
+            return await _device.Find(d => d.Id == deviceId).FirstOrDefaultAsync();
         }
+
+        public async Task CreateDeviceAsync(Device device)
+        {
+            await _device.InsertOneAsync(device);
+        }
+      
+        public async Task UpdateDeviceAsync(Device updatedDevice)
+        {
+            var filter = Builders<Device>.Filter.Eq(d => d.Id, updatedDevice.Id); // Creates a filter to find the user by their ID
+
+            var update = Builders<Device>.Update
+                .Set(d => d.Name, updatedDevice.Name)
+                .Set(d => d.MacAddress, updatedDevice.MacAddress)
+                .Set(d => d.Status, updatedDevice.Status)
+                .Set(d => d.AssignedUsers, updatedDevice.AssignedUsers);
+
+            // Perform the update
+            await _device.UpdateOneAsync(filter, update);
+
+            // Fetch and return the updated device
+             await _device.Find(d => d.Id == updatedDevice.Id).FirstOrDefaultAsync();
+        }
+
+        public async Task DeleteDeviceAsync(string deviceId)
+{
+            var filter = Builders<Device>.Filter.Eq(d => d.Id, deviceId);
+
+            await _device.DeleteOneAsync(deviceId);
+
+    }
     }
 }

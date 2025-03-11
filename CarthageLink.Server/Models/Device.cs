@@ -4,6 +4,13 @@ namespace CarthageLink.Server.Models
 {
     public class Device
     {
+        public enum DeviceStatus
+        {
+            Active,
+            Inactive,
+            Maintenance
+        }
+
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }

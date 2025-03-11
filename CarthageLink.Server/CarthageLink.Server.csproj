@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <SpaRoot>..\carthagelink.client</SpaRoot>
-    <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+    <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:52782</SpaProxyServerUrl>
   </PropertyGroup>
 
@@ -16,6 +16,7 @@
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
 	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.6.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.2.1" />
+    <PackageReference Include="MQTTnet" Version="4.3.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 

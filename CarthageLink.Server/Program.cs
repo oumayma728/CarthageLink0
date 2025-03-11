@@ -1,4 +1,4 @@
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using CarthageLink.Server.Repositories;
 using CarthageLink.Server.Services;
 using CarthageLink.Server.Data;
@@ -7,9 +7,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using static CarthageLink.Server.Repositories.ILicenseRepository;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddSingleton<IMQTTService, MQTTService>();
+builder.Services.AddHostedService<MqttBackgroundService>();
 
 // Configure the DatabaseSettings section in the configuration
 builder.Services.Configure<DatabaseSettings>(
@@ -40,7 +45,11 @@ builder.Services.AddAuthorization();
 // Add Swagger/OpenAPI support
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-/*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -49,18 +58,27 @@ builder.Services.AddSwaggerGen();
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],  // Ensure these are in appsettings.json
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
-    });*/
+    });
+
+builder.Services.AddAuthorization();
+
 // Register the services with DI
-builder.Services.AddScoped<IUserService, UserService>();
+//Repository 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IFactoryService, FactoryService>();
 builder.Services.AddScoped<IFactoryRepository, FactoryRepository>();
 builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
-builder.Services.AddScoped<LicenseRepository>();
+builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
+//services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IFactoryService, FactoryService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<ILicenseService, LicenseService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
 
 // Enable CORS policy if needed
 builder.Services.AddCors(options =>
@@ -75,7 +93,7 @@ var app = builder.Build();
 
 // Serve static files if required
 app.UseDefaultFiles();
-app.UseStaticFiles();
+//app.UseStaticFiles();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -83,6 +101,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
 

@@ -18,8 +18,6 @@ namespace CarthageLink.Server.Models
         [Required]
         [BsonElement("key")]
         public string ?Key { get; set; }
-        [BsonElement("generatedBy")]
-        public string? GeneratedBy { get; set; } 
 
         [BsonElement("assignedTo")]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -32,9 +30,9 @@ namespace CarthageLink.Server.Models
         [BsonElement("devices")]
         public List<string> Devices { get; set; } = new List<string>();
         [BsonElement("userRole")]
-        public string? userRole { get; set; }
+        public UserRole userRole { get; set; }
         [BsonElement("status")]
-        public string? Status { get; set; }
+        public LicenseStatus Status { get; set; }
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; }
 

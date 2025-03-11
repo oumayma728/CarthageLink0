@@ -2,8 +2,9 @@
 using CarthageLink.Server.Repositories;
 using CarthageLink.Server.Services;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using MongoDB.Bson;
+using System;
+using System.Threading.Tasks;
 
 namespace CarthageLink.Server.Controllers
 {
@@ -11,44 +12,87 @@ namespace CarthageLink.Server.Controllers
     [ApiController]
     public class DeviceController : ControllerBase
     {
-            //private readonly IFactoryService _factoryService;
-            private readonly IDeviceRepository _deviceRepository;
+        private readonly IDeviceService _deviceService;
+        private readonly IDeviceRepository _deviceRepository;
 
-            public DeviceController(/*IFactoryService factoryService,*/ IDeviceRepository deviceRepository)
-            {
-                //_factoryService = factoryService;
-                _deviceRepository = deviceRepository;
-            }
-            // GET: api/<DeviceController>
-            [HttpGet]
-        public async Task <ActionResult<List<Device>>> GetAllDevices()
+        public DeviceController(IDeviceService deviceService, IDeviceRepository deviceRepository)
         {
-           return await _deviceRepository.GetAllDevices();
+            _deviceService = deviceService;
+            _deviceRepository = deviceRepository;
+        }
+
+        // GET: api/<DeviceController>
+        [HttpGet]
+        public async Task<IEnumerable<Device>> GetAllDevicesAsync()
+        {
+            return await _deviceRepository.GetAllDevicesAsync();
         }
 
         // GET api/<DeviceController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<IActionResult> GetDeviceById(string id)
         {
-            return "value";
+            // Parse the ID as ObjectId
+            if (!ObjectId.TryParse(id, out var objectId))
+            {
+                return BadRequest(new { message = $"'{id}' is not a valid 24 digit hex string." });
+            }
+
+            try
+            {
+                // Pass the valid id to the service
+                var device = await _deviceService.GetDeviceByIdAsync(id);
+                if (device == null)
+                {
+                    return NotFound(new { message = "Device not found" });
+                }
+                return Ok(device);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", error = ex.Message });
+            }
         }
 
         // POST api/<DeviceController>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public async Task<IActionResult> CreateDevice([FromBody] Device device)
         {
+            if (device == null)
+            {
+                return BadRequest("Device data is required.");
+            }
+            await _deviceService.CreateDeviceAsync(device);
+            return Ok(new { message = "Device created successfully." });
         }
 
         // PUT api/<DeviceController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public async Task<IActionResult> UpdateDevice(string id, [FromBody] Device updatedDevice)
         {
+            var existingDevice = await _deviceService.GetDeviceByIdAsync(id);
+            if (existingDevice == null)
+            {
+                return NotFound($"Device with id {id} not found.");
+            }
+
+            updatedDevice.Id = id;
+            await _deviceService.UpdateDeviceAsync(updatedDevice);
+            return Ok("Device updated successfully.");
         }
 
         // DELETE api/<DeviceController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> DeleteDevice(string id)
         {
+            var existingDevice = await _deviceService.GetDeviceByIdAsync(id);
+            if (existingDevice == null)
+            {
+                return NotFound($"Device with id {id} not found.");
+            }
+
+            await _deviceService.DeleteDeviceAsync(id);
+            return Ok("Device deleted successfully.");
         }
     }
 }

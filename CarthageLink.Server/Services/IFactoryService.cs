@@ -7,20 +7,22 @@ namespace CarthageLink.Server.Services
     public interface IFactoryService
     {
 
-        Task <string> CreateFactoryAsync(Factory factory);
+        Task  <string> CreateFactoryAsync(Factory factory,string licenseKey);
         // Get all Factories
         Task<IEnumerable<Factory>> GetAllFactoriesAsync(); // returns collection (IEnumerable<User>) of User objects.
 
         // Get factory by Id
         Task<Factory> GetFactoryByIdAsync(string id);
-
+        Task<Factory?> GetFactoryByTaxNumberAsync(string number);
         // Update factory
         Task UpdateFactoryAsync(Factory factory);
 
         // Delete factory
         Task<bool> DeleteFactoryAsync(string id);
         Task<Factory?> GetFactoryByAdminIdAsync(string adminId);
-        Task<List<Device>> GetFactoryDevicesAsync(string factoryId);
+        Task<IEnumerable<Device>> GetFactoryDevicesAsync(string factoryId);
+        Task UpdateFactoryAdminIdAsync(string? factoryId, string v);
+        // Task UpdateLicenseKeyAsync(string? factoryId, string key);
     }
 
 
@@ -28,12 +30,12 @@ namespace CarthageLink.Server.Services
     public class FactoryService : IFactoryService
     {
         private readonly IFactoryRepository _factoryRepository;
-        private readonly IDeviceRepository _deviceRepository; // ✅ Correct naming and declaration
+        private readonly IDeviceRepository _deviceRepository; 
 
-        public FactoryService(IFactoryRepository factoryRepository, IDeviceRepository deviceRepository) // ✅ Include deviceRepository in parameters
+        public FactoryService(IFactoryRepository factoryRepository, IDeviceRepository deviceRepository) 
         {
             _factoryRepository = factoryRepository;
-            _deviceRepository = deviceRepository; // ✅ Now correctly assigned
+            _deviceRepository = deviceRepository; 
         }
 
 
@@ -43,29 +45,33 @@ namespace CarthageLink.Server.Services
         }
 
         // Create a list to hold User objects, and it can only be set once
-        private readonly List<Factory> _Factory = new List<Factory>();
+        //private readonly List<Factory> _Factory = new List<Factory>();
 
         // Create Factory
-        public async Task<string> CreateFactoryAsync(Factory factory)
+        public async Task <string> CreateFactoryAsync(Factory factory , string licenseKey)
         {
-            string licenceKey = GenerateLicenceKey();
-            factory.LicenceKey = licenceKey;
-            await _factoryRepository.RegisterFactoryAsync(factory,licenceKey);
-            return licenceKey;
+            string Key = GenerateLicenceKey();
+             factory.LicenseKey = Key;
+             await _factoryRepository.RegisterFactoryAsync(factory,licenseKey);
+           return Key;
 
         }
-
         // Get All Factories
         public async Task<IEnumerable<Factory>> GetAllFactoriesAsync()
         {
-            return await Task.FromResult(_Factory);
+            return await _factoryRepository.GetAllFactoriesAsync();
         }
 
         // Get Factory by ID
         public async Task<Factory?> GetFactoryByIdAsync(string id)
         {
-            return await _factoryRepository.GetFactoryByIdAsync(id);
+            return await _factoryRepository.GetFactoryByIdAsync(id)
+           ?? throw new Exception("Factory not found.");
 
+        }
+        public async Task<Factory?> GetFactoryByTaxNumberAsync(string number)
+        {
+            return await _factoryRepository.GetFactoryByTaxNumberAsync(number);
         }
         // Update Factory
         public async Task UpdateFactoryAsync(Factory updateFactory)
@@ -89,7 +95,7 @@ namespace CarthageLink.Server.Services
             var Factory = await _factoryRepository.GetFactoryByIdAsync(id);
             if (Factory == null)
             {
-                return false;  // User not found
+                return false;
             }
 
             await _factoryRepository.DeleteFactoryAsync(id);
@@ -105,7 +111,7 @@ namespace CarthageLink.Server.Services
             // Fetch the factory where AdminId matches the given adminId
             return await _factoryRepository.GetFactoryByAdminIdAsync(adminId);
         }
-        public async Task<List<Device>> GetFactoryDevicesAsync(string factoryId)
+        public async Task<IEnumerable<Device>> GetFactoryDevicesAsync(string factoryId)
         {
             if (string.IsNullOrEmpty(factoryId))
             {
@@ -116,4 +122,8 @@ namespace CarthageLink.Server.Services
             return await _deviceRepository.GetDevicesByFactoryIdAsync(factoryId);
         }
 
+        public Task UpdateFactoryAdminIdAsync(string? factoryId, string v)
+        {
+            throw new NotImplementedException();
+        }
     } }

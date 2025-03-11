@@ -1,111 +1,195 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CarthageLink.Server.Models;
 using MongoDB.Driver;
-using CarthageLink.Server.Data;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
-using BCrypt.Net; // For secure password hashing
+using BCrypt.Net;
+using CarthageLink.Server.Data;
 
 namespace CarthageLink.Server.Repositories
 {
-    //This is an interface that defines the methods the UserRepository class must implement.
     public interface IUserRepository
     {
-        Task<List<User>>GetAllUsersAsync();
-        Task<User?> GetUserByEmailAsync(string email);
-        Task<User?> GetUserByIdAsync(string id);
-        Task <User?> UpdateUserAsync(User user);
-        Task DeleteUserAsync(string userId);
+        Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<User> GetUserByEmailAsync(string email);
+        Task<User> GetUserByIdAsync(string id);
+        Task UpdateUserAsync(User user);
+        Task<bool> DeleteUserAsync(string userId);
         Task RegisterUserAsync(User user);
         Task<bool> ValidateUserCredentialsAsync(string email, string password);
+        Task CreateUserAsync(User user);
     }
 
     public class UserRepository : IUserRepository
     {
-        private readonly IMongoCollection<User> _User;
-        private readonly IMongoCollection<License> _License;
+        private readonly IMongoCollection<User> _user;
+        private readonly IMongoCollection<Models.License> _Licence;
+
         //Constructor
         public UserRepository(IOptions<DatabaseSettings> settings)
         {
             var mongoClient = new MongoClient(settings.Value.Connection);
             var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
-            _User = mongoDb.GetCollection<User>("User");
-            _License = mongoDb.GetCollection<License>("License"); // ✅ Initialize `_License`
+            _user = mongoDb.GetCollection<User>("User");
+            _Licence = mongoDb.GetCollection<License>("Licence");
+
         }
-        public async Task RegisterUserAsync(User user)
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            if (string.IsNullOrEmpty(user.Id)) //If the user doesn’t have an ID, it generates a new one using ObjectId.GenerateNewId().
+            return await _user.Find(User => true).ToListAsync();
+        }
+
+        public async Task<User> GetUserByIdAsync(string id)
+        {
+            try
             {
-                user.Id = ObjectId.GenerateNewId().ToString();
+                if (string.IsNullOrEmpty(id))
+                    throw new ArgumentException("User ID cannot be null or empty.", nameof(id));
+
+                return await _user.Find(u => u.Id == id).FirstOrDefaultAsync();
             }
-
-            user.PasswordHash = HashPassword(user.PasswordHash); // ✅ Hash the password before saving
-
-            await _User.InsertOneAsync(user);// inserts the user into the User collection.
-
-
-
-        }
-        public async Task<List<User>> GetAllUsersAsync()
-        {
-            var users = await _User.Find(user => true).ToListAsync();//Find all users and converts the result to a list
-            return users;
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to retrieve user by ID.", ex);
+            }
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
+        public async Task<User> GetUserByEmailAsync(string email)
         {
-            return await _User.Find(u => u.Email == email).FirstOrDefaultAsync();
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                    throw new ArgumentException("Email cannot be null or empty.", nameof(email));
+
+                return await _user.Find(u => u.Email == email).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to retrieve user by email.", ex);
+            }
         }
 
-        public async Task<User?> GetUserByIdAsync(string id)
+        public async Task CreateUserAsync(User user)
         {
-            // Query MongoDB with an async method
-            var user = await _User.Find(u => u.Id == id).FirstOrDefaultAsync();
-            return user;
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user), "User cannot be null.");
+
+                user.Password = HashPassword(user.Password); // Hash the password before saving
+                await _user.InsertOneAsync(user);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to create user.", ex);
+            }
         }
 
-        public async Task<User?> UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(User user)
         {
-            var filter = Builders<User>.Filter.Eq(u => u.Id, user.Id); //Builders<User>.Filter.Eq(u => u.Id, user.Id): Creates a filter to find the user by their ID
-            var update = Builders<User>.Update
-                .Set(u => u.Email, user.Email)
-                .Set(u => u.Phone, user.Phone)
-                .Set(u => u.PasswordHash, user.PasswordHash)
-                .Set(u => u.UserRole, user.UserRole)
-                .Set(u => u.FactoryId, user.FactoryId)
-                .Set(u => u.AssignedDevices, user.AssignedDevices);
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user), "User cannot be null.");
 
-            // Perform the update
-            await _User.UpdateOneAsync(filter, update); //Updates the user in the database.It then fetches and returns the updated user.
-
-            // After updating, fetch the updated user
-            return await _User.Find(u => u.Id == user.Id).FirstOrDefaultAsync();
+                await _user.ReplaceOneAsync(u => u.Id == user.Id, user);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to update user.", ex);
+            }
         }
 
-
-        public async Task DeleteUserAsync(string userId)
+        public async Task<bool> DeleteUserAsync(string id)
         {
-            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
-            await _User.DeleteOneAsync(filter);
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                    throw new ArgumentException("User ID cannot be null or empty.", nameof(id));
+
+                var result = await _user.DeleteOneAsync(u => u.Id == id);
+                return result.DeletedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to delete user.", ex);
+            }
         }
 
         public async Task<bool> ValidateUserCredentialsAsync(string email, string password)
         {
-            var user = await GetUserByEmailAsync(email);
-            if (user == null) return false;
+            try
+            {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                    throw new ArgumentException("Email and password cannot be null or empty.");
 
-            return VerifyPassword(password, user.PasswordHash); // ✅ Use secure password comparison
+                var user = await GetUserByEmailAsync(email);
+                if (user == null)
+                    return false;
+
+                return VerifyPassword(password, user.Password); // Verify the password securely
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to validate user credentials.", ex);
+            }
+        }
+
+        public async Task RegisterUserAsync(User user)
+        {
+            try
+            {
+                if (user == null)
+                    throw new ArgumentNullException(nameof(user), "User cannot be null.");
+
+                user.Password = HashPassword(user.Password); // Hash the password before saving
+                await _user.InsertOneAsync(user);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to register user.", ex);
+            }
         }
 
         // ✅ Secure Password Hashing with BCrypt
         private string HashPassword(string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            try
+            {
+                if (string.IsNullOrEmpty(password))
+                    throw new ArgumentException("Password cannot be null or empty.", nameof(password));
+
+                return BCrypt.Net.BCrypt.HashPassword(password);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to hash password.", ex);
+            }
         }
 
+        // ✅ Secure Password Verification with BCrypt
         private bool VerifyPassword(string password, string hashedPassword)
         {
-            return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+            try
+            {
+                if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hashedPassword))
+                    throw new ArgumentException("Password and hashed password cannot be null or empty.");
+
+                return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to verify password.", ex);
+            }
         }
     }
 }
