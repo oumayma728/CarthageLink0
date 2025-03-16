@@ -15,14 +15,14 @@ namespace CarthageLink.Server.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
         [BsonElement("Name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
         [BsonElement("MacAddress")]
-        public string MacAddress { get; set; }
+        public required string MacAddress { get; set; }
         [BsonElement("Status")]
-        public string Status { get; set; }
+        public required string Status { get; set; }
         [BsonElement("FactoryId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string FactoryId { get; set; }
+        public string? FactoryId { get; set; }
         [BsonElement("AssignedUsers")]
         [BsonRepresentation(BsonType.ObjectId)]
         public List<string>? AssignedUsers{ get; set; }

@@ -12,11 +12,10 @@ namespace CarthageLink.Server.Repositories
     public interface IUserRepository
     {
         Task<IEnumerable<User>> GetAllUsersAsync();
-        Task<User> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByEmailAsync(string email);
         Task<User> GetUserByIdAsync(string id);
         Task UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(string userId);
-        Task RegisterUserAsync(User user);
         Task<bool> ValidateUserCredentialsAsync(string email, string password);
         Task CreateUserAsync(User user);
     }
@@ -24,7 +23,7 @@ namespace CarthageLink.Server.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly IMongoCollection<User> _user;
-        private readonly IMongoCollection<Models.License> _Licence;
+        private readonly IMongoCollection<Models.License> _License;
 
         //Constructor
         public UserRepository(IOptions<DatabaseSettings> settings)
@@ -32,7 +31,7 @@ namespace CarthageLink.Server.Repositories
             var mongoClient = new MongoClient(settings.Value.Connection);
             var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
             _user = mongoDb.GetCollection<User>("User");
-            _Licence = mongoDb.GetCollection<License>("Licence");
+            _License = mongoDb.GetCollection<License>("License");
 
         }
         public async Task<IEnumerable<User>> GetAllUsersAsync()
@@ -42,50 +41,20 @@ namespace CarthageLink.Server.Repositories
 
         public async Task<User> GetUserByIdAsync(string id)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(id))
-                    throw new ArgumentException("User ID cannot be null or empty.", nameof(id));
-
-                return await _user.Find(u => u.Id == id).FirstOrDefaultAsync();
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                throw new Exception("Failed to retrieve user by ID.", ex);
-            }
+            return await _user.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
 
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(email))
-                    throw new ArgumentException("Email cannot be null or empty.", nameof(email));
-
-                return await _user.Find(u => u.Email == email).FirstOrDefaultAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to retrieve user by email.", ex);
-            }
+            return await _user.Find(u => u.Email == email).FirstOrDefaultAsync();
         }
+
 
         public async Task CreateUserAsync(User user)
         {
-            try
-            {
-                if (user == null)
-                    throw new ArgumentNullException(nameof(user), "User cannot be null.");
+            await _user.InsertOneAsync(user);
 
-                user.Password = HashPassword(user.Password); // Hash the password before saving
-                await _user.InsertOneAsync(user);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                throw new Exception("Failed to create user.", ex);
-            }
+
         }
 
         public async Task UpdateUserAsync(User user)
@@ -141,22 +110,7 @@ namespace CarthageLink.Server.Repositories
             }
         }
 
-        public async Task RegisterUserAsync(User user)
-        {
-            try
-            {
-                if (user == null)
-                    throw new ArgumentNullException(nameof(user), "User cannot be null.");
-
-                user.Password = HashPassword(user.Password); // Hash the password before saving
-                await _user.InsertOneAsync(user);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                throw new Exception("Failed to register user.", ex);
-            }
-        }
+     
 
         // ✅ Secure Password Hashing with BCrypt
         private string HashPassword(string password)

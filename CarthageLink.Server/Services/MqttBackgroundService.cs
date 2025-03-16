@@ -25,9 +25,6 @@
                 await _MQTTService.PublishAsync("Csharp/mqtt", $"Hello, MQTT! Message number {i}");
                 await Task.Delay(1000, stoppingToken); // Wait for 1 second
             }
-
-            // Disconnect from the broker
-            await _MQTTService.DisconnectAsync();
         }
     }
 }

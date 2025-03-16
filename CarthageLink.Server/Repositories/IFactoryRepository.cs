@@ -13,8 +13,9 @@ namespace CarthageLink.Server.Repositories
         Task<Factory?> UpdateFactoryAsync(Factory factory);
         Task <Factory?> GetFactoryByAdminIdAsync(string adminId);
         Task DeleteFactoryAsync(string FactoryId);
-        Task RegisterFactoryAsync(Factory factory/*, string licenceKey*/);
-        Task UpdateFactoryAdminAsync(string factoryId, string adminId);
+        Task RegisterFactoryAsync(Factory factory, string licenseKey);
+        Task UpdateFactoryAdminIdAsync(string id, string adminId);
+
         //Task UpdateLicenseKeyAsync(string id, string licenseKey);
         Task<Factory?> GetFactoryByTaxNumberAsync(string number);
     }
@@ -22,7 +23,7 @@ namespace CarthageLink.Server.Repositories
     public class FactoryRepository : IFactoryRepository
     {
         private readonly IMongoCollection<Factory> _Factory;
-        private readonly IMongoCollection<Models.License> _Licence;
+        private readonly IMongoCollection<Models.License> _License;
 
         //Constructor
         public FactoryRepository(IOptions<DatabaseSettings> settings)
@@ -30,36 +31,36 @@ namespace CarthageLink.Server.Repositories
             var mongoClient = new MongoClient(settings.Value.Connection);
             var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
             _Factory = mongoDb.GetCollection<Factory>("Factory");
-            _Licence = mongoDb.GetCollection<License>("Licence"); 
+            _License = mongoDb.GetCollection<License>("License"); 
 
         }
-        public async Task RegisterFactoryAsync(Factory factory /*, string licenceKey*/)
+        public async Task RegisterFactoryAsync(Factory factory , string licenseKey)
         {
-            if (string.IsNullOrEmpty(factory.Id)) //If the user doesn’t have an ID, it generates a new one using ObjectId.GenerateNewId().
+            if (string.IsNullOrEmpty(factory.Id)) 
             {
                 factory.Id = ObjectId.GenerateNewId().ToString();
             }
+            await _Factory.InsertOneAsync(factory); //register the factory first , for the license to have the factoryID
 
-            /*creates a new License object and inserts it into the License collection.
-           var licence = new License
+
+            //creates a new License object and inserts it into the License collection.
+            var license = new License
             {
-                Key = licenceKey,
-                AssignedTo = factory.Id,
-                Status = LicenseStatus.Active,
-                CreatedAt = DateTime.UtcNow
-            };
-            if (factory.LicenseKey == null)
-            {
-                factory.LicenseKey = licenceKey; 
+                Key = licenseKey,
+               AssignedTo = factory.Id,
+                FactoryId = factory.Id,
+               Devices = factory.AssignedDevices,
+                Status = LicenseStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt= DateTime.UtcNow.AddYears(5)
             };
 
 
-            await _Licence.InsertOneAsync(licence);*/
-            await _Factory.InsertOneAsync(factory);// inserts the user into the User collection.
+            await _License.InsertOneAsync(license);
         }
         public async Task<IEnumerable<Factory>> GetAllFactoriesAsync()
         {
-           return  await _Factory.Find(factory => true).ToListAsync();//Find all users and converts the result to a list
+           return  await _Factory.Find(factory => true).ToListAsync();
             
         }
         public async Task<Factory?> GetFactoryByIdAsync(string id)
@@ -79,7 +80,7 @@ namespace CarthageLink.Server.Repositories
 
         public async Task<Factory?> UpdateFactoryAsync(Factory factory)
         {
-            var filter = Builders<Factory>.Filter.Eq(f => f.Id, factory.Id); //Builders<User>.Filter.Eq(u => u.Id, user.Id): Creates a filter to find the user by their ID
+            var filter = Builders<Factory>.Filter.Eq(f => f.Id, factory.Id); 
             var update = Builders<Factory>.Update
                 .Set(f => f.Name, factory.Name)
                 .Set(f => f.Description, factory.Description)
@@ -89,19 +90,18 @@ namespace CarthageLink.Server.Repositories
                 .Set(f => f.AssignedDevices, factory.AssignedDevices);
 
             // Perform the update
-            await _Factory.UpdateOneAsync(filter, update); //Updates the user in the database.It then fetches and returns the updated user.
-
-            // After updating, fetch the updated user
+            await _Factory.UpdateOneAsync(filter, update); 
             return await _Factory.Find(filter).FirstOrDefaultAsync();
         }
 
-
-        public async Task UpdateFactoryAdminAsync(string factoryId, string adminId)
+        public async Task UpdateFactoryAdminIdAsync(string id, string adminId)
         {
-            var filter = Builders<Factory>.Filter.Eq(f => f.Id, factoryId);
+            var filter = Builders<Factory>.Filter.Eq(f => f.Id, id);
             var update = Builders<Factory>.Update.Set(f => f.FactoryAdminId, adminId);
+
             await _Factory.UpdateOneAsync(filter, update);
         }
+
         public async Task DeleteFactoryAsync(string factoryId)
         {
             var filter = Builders<Factory>.Filter.Eq(u => u.Id, factoryId);

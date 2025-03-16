@@ -14,20 +14,18 @@ namespace CarthageLink.Server.Controllers
     public class FactoryController : ControllerBase
     {
         private readonly IFactoryService _factoryService;
-        private readonly IFactoryRepository _factoryRepository;
 
-        public FactoryController(IFactoryService factoryService, IFactoryRepository factoryRepository)
+        public FactoryController(IFactoryService factoryService)
         {
             _factoryService = factoryService;
-            _factoryRepository = factoryRepository;
         }
         // GET all factories for SuperAdmin 
-        [HttpGet("all")]
-       //[Authorize(Roles = "SuperAdmin")]
+        [HttpGet]
+      // [Authorize(Roles = "SuperAdmin")]
 
         public async Task<ActionResult<List<Factory>>> GetAllFactories()
         {
-            var factories = await _factoryRepository.GetAllFactoriesAsync();
+            var factories = await _factoryService.GetAllFactoriesAsync();
             return Ok(factories);
         }
 
@@ -45,7 +43,7 @@ namespace CarthageLink.Server.Controllers
         }
 
         // POST api/Factory
-        [HttpPost("create-factory")]
+        [HttpPost()]
         //[Authorize(Roles = "SuperAdmin")]
 
         public async Task<IActionResult> CreateFactory([FromBody] Factory factory)
@@ -54,11 +52,18 @@ namespace CarthageLink.Server.Controllers
             {
                 return BadRequest("Factory data is required.");
             }
-            await _factoryService.CreateFactoryAsync(factory, licenseKey);
 
+            // Call the service to create the factory and generate the license key
+            string licenseKey = await _factoryService.CreateFactoryAsync(factory);
 
-            return Ok(new { message = "Factory created successfully."});
+            // Return the generated license key and success message
+            return Ok(new
+            {
+                message = "Factory created successfully.",
+                licenseKey = licenseKey  // Return the generated license key
+            });
         }
+
 
         // PUT api/Factory/{id}
         [HttpPut("{id}")]

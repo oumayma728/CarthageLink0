@@ -67,28 +67,31 @@ namespace CarthageLink.Server.Services
             return await _licenseRepository.UpdateLicenseAsync(id, updatedLicense);
         }
 
-        public async Task<License> VerifyLicenseKeyAsync(string licenseKey)
+        public async Task<License?> VerifyLicenseKeyAsync(string licenseKey)
         {
-            if (string.IsNullOrEmpty(licenseKey))
-            {
-                throw new ArgumentException("License key cannot be null or empty.", nameof(licenseKey));
-            }
+            Console.WriteLine($"Verifying license key: {licenseKey}");
 
-            // Retrieve the license from the repository by key
             var license = await _licenseRepository.GetLicenseByKeyAsync(licenseKey);
 
             if (license == null)
             {
+                Console.WriteLine($"License not found: {licenseKey}");
                 throw new Exception("Invalid license key.");
             }
 
+            Console.WriteLine($"License Found: Key={license.Key}, Status={license.Status}, FactoryId={license.FactoryId}");
+
             if (license.Status != LicenseStatus.Pending)
             {
-                throw new Exception("License key is not in a valid state.");
+                Console.WriteLine($"License key is in state: {license.Status} (Expected: {LicenseStatus.Pending})");
+                return null;
             }
 
+            Console.WriteLine($"License is valid. Proceeding...");
             return license;
         }
+
+
 
     }
 }

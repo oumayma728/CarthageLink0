@@ -15,7 +15,7 @@ namespace CarthageLink.Server.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
+        public string? Id { get; set; }
         [BsonElement("Name")]
         public string? Name { get; set; }
         [BsonElement("email")]
@@ -34,12 +34,10 @@ namespace CarthageLink.Server.Models
         [BsonElement("role")]
         [BsonRepresentation(BsonType.String)]
         public UserRole? Role { get; set;}
-        [BsonElement("TaxNumber")]
-        public string? TaxNumber { get; set; }
-
-
         [BsonElement("factoryId")]
         [BsonRepresentation(BsonType.ObjectId)]
+
+       
         public string? FactoryId { get; set; }
 
         [BsonElement("assignedDevices")]
@@ -47,9 +45,8 @@ namespace CarthageLink.Server.Models
 
         [BsonElement("LicenseKey")]
         public string? LicenseKey { get; set; }
-        [BsonElement("IsRegistrationComplete")]
-
-        public bool IsRegistrationComplete { get; set; } 
+        [BsonElement("factoryname")]
+        public string? FactoryName { get; set; }
 
     }
 }

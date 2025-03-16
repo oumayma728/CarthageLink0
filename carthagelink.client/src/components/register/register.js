@@ -1,27 +1,34 @@
 import  { useState } from 'react';
-
+import './register.css'
 const RegisterForm = () => {
+    //creates a state variable to store the user's input.
+    //formData stores all the user’s input values.
+    //setFormData is a function that updates formData when the user types something.
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
         password: '',
-        role: 'Operator', // Default role
-        licenseKey: '' // Optional: If you want users to input a license key
+        role: 'FactoryAdmin', 
+        licenseKey: ''
     });
 
+//This function runs when the user types in the form.
     const handleChange = (e) => {
+        //e.target refers to the input field where the user is typing.
         const { name, value } = e.target;
+        //setFormData({...}) updates formData with the new input.
         setFormData({
             ...formData,
             [name]: value
         });
     };
-
+//This function runs when the user clicks the "Register" button.
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('https://localhost:7086/api/User/register', {
+            const response = await fetch("https://localhost:7086/api/User/register-user", { //used to send data to a server.
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -30,14 +37,15 @@ const RegisterForm = () => {
             });
     
             if (!response.ok) {
-                const errorData = await response.json(); // Parse error response
+                const errorData = await response.json();
+                console.error('Server Error:', errorData); // Log server error
                 throw new Error(errorData.message || 'Registration failed');
             }
     
             const data = await response.json();
             alert(data.message);
         } catch (error) {
-            console.error('Error:', error); // Log the error to the console
+            console.error('Fetch Error:', error); // Log fetch error
             alert(error.message || 'Registration failed');
         }
     };
@@ -63,17 +71,20 @@ const RegisterForm = () => {
             <div>
                 <label>Role:</label>
                 <select name="role" value={formData.role} onChange={handleChange}>
-                    <option value="SuperAdmin">Super Admin</option>
                     <option value="FactoryAdmin">Factory Admin</option>
-                    <option value="Operator">Operator</option>
                 </select>
             </div>
-            {/* Optional: If you want users to input a license key */}
-            { <div>
+            <div>
                 <label>License Key:</label>
                 <input type="text" name="licenseKey" value={formData.licenseKey} onChange={handleChange} />
-            </div> }
-            <button type="submit">Register</button>
+            </div> 
+            <div>
+                <a href='/login'>Already have an account?</a>
+       </div>
+       <a href="/main">
+        <button className="main"> Register</button>
+      </a>
+
         </form>
     );
 };

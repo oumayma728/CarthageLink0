@@ -7,16 +7,19 @@
     <SpaRoot>..\carthagelink.client</SpaRoot>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:52782</SpaProxyServerUrl>
+    <OutputType>WinExe</OutputType> <!-- Ensures it's a Windows application -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier> <!-- Specify the platform -->
+    <PublishTrimmed>false</PublishTrimmed> <!-- Optional: To prevent code trimming -->
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8" />
-	  <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="8.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
-	  <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.6.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.6.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.2.1" />
-    <PackageReference Include="MQTTnet" Version="4.3.3" />
+<PackageReference Include="MQTTnet" Version="4.3.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 

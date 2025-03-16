@@ -7,30 +7,27 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using CarthageLink.Server.Repositories;
 using System.Data;
+using Microsoft.AspNetCore.Cors;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace CarthageLink.Server.Controllers
 {
+    [EnableCors("AllowAll")] // Apply CORS policy to this controller
+
     [Route("api/[controller]")] //base route for the controller
     [ApiController]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IUserRepository _userRepository; // Declare _userRepository
-        private readonly LogInModel loginmodel;
         private readonly IFactoryService _factoryService;
-        private readonly IFactoryRepository _factoryRepository;
 
-        public string FactoryName { get; private set; }
 
         // Inject both services
         public UserController(IUserService userService, IUserRepository userRepository, IFactoryService factoryService , IFactoryRepository factoryRepository)
         {
             _userService = userService;
-            _userRepository = userRepository;
             _factoryService = factoryService;
-            _factoryRepository = factoryRepository;
         }
 
         //Get All users
@@ -46,23 +43,21 @@ namespace CarthageLink.Server.Controllers
         //create user for super admin
 
         [HttpPost("Super-admin/create-user")]
-        public async Task<IActionResult> PostFactoryAdmin([FromBody] User user)
+        public async Task<IActionResult> Createuser([FromBody] User user)
         {
             if (user == null)
                 return BadRequest(new { message = "User data is required." });
 
-            var existingUser = await _userRepository.GetUserByEmailAsync(user.Email);
+            var existingUser = await _userService.GetUserByEmailAsync(user.Email);
             if (existingUser != null)
                 return BadRequest(new { message = "User with this email already exists." });
-
-            var role = UserRole.FactoryAdmin; 
-            var licenseKey = await _userService.CreateUserAsync(user, role , user.TaxNumber);
-            return Ok(new { message = "User created successfully", licenseKey });
+            await _userService.CreateUserAsync(user);
+            return Ok(new { message = "User created successfully"});
         
         }
 
         // Create user for factory admin
-        [HttpPost("factory-admin/create-user")]
+        /*[HttpPost("factory-admin/create-user")]
         public async Task<IActionResult> PostOperator([FromBody] User user, [FromHeader] string factoryAdminFactoryId)
         {
             if (user == null)
@@ -80,19 +75,20 @@ namespace CarthageLink.Server.Controllers
        
             return Ok(new { message = "User created successfully", licenseKey });
         }
-
+        */
 
         // Get User by Id
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> Get(String id) //ActionResult<User> return type allows for both successful and error responses.
+        [HttpGet("{id:length(24)}")] 
+        public async Task<ActionResult<User>> Get(string id)
         {
-             var user = await _userService.GetUserByIdAsync(id); //Calls the service to fetch the user based on the provided ID.
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
             return user;
         }
+
         // Update User
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(string id, User updateUser)
@@ -132,27 +128,17 @@ namespace CarthageLink.Server.Controllers
             }
 
         }
-        [HttpPost("register")]
+        [HttpPost("register-user")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             try
             {
-                var existingUser = await _userRepository.GetUserByEmailAsync(model.Email);
+                var existingUser = await _userService.GetUserByEmailAsync(model.Email);
+                if (existingUser != null)
+                    return BadRequest(new { message = "User with this email already exists." });
 
-                if (existingUser == null)
-                {
-                    //await _userService.RegisterUserAsync(model, license);
-                    return Ok(new { message = "Initial registration successful. Please complete your registration." });
-                }
-                else
-                {
-                    // Step 2: Complete registration
-                    if (existingUser.IsRegistrationComplete)
-                        return BadRequest("User registration is already complete.");
-
-                   // await _userService.RegisterUserAsync(model, license);
-                    return Ok(new { message = "Registration completed successfully." });
-                }
+                await _userService.RegisterUserAsync(model);
+                return Ok(new { message = "Registration completed successfully." });
             }
             catch (Exception ex)
             {
@@ -161,25 +147,10 @@ namespace CarthageLink.Server.Controllers
         }
         //Log In User
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LogInModel loginModel)
+        public async Task<IActionResult> Login([FromBody] LogInModel model)
         {
-            var user = await _userRepository.GetUserByEmailAsync(loginModel.Email);
-
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginModel.Password, user.Password))
-            {
-                return Unauthorized("Invalid email or password.");
-            }
-            var token = await _userService.LoginUserAsync(loginmodel);
-            return Ok(new { message = "User logged in successfuly", Token = token });
-
-           
-            //Generate JWT token
-            //var token = GenerateJwtToken(user);
-
-            // Return the token to the user
-            //return Ok(new { token });
-            //return Ok(new { message = "Login successful" });
-
+            await _userService.LoginUserAsync(model);
+            return Ok(new { message = "User logged in successfuly" });
         }
     }
 }

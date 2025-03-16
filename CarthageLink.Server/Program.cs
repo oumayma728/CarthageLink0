@@ -64,6 +64,8 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+
+
 builder.Services.AddAuthorization();
 
 // Register the services with DI
@@ -91,21 +93,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Serve static files if required
 app.UseDefaultFiles();
 //app.UseStaticFiles();
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors("AllowAllOrigins");
+
+// ✅ FIX: Ensure CORS policy name is correct
+app.UseCors("AllowAll");
+
+// ✅ FIX: Add Authentication Middleware
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

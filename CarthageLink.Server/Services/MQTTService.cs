@@ -30,7 +30,7 @@ namespace CarthageLink.Server.Services
 
 
             var broker = _configuration["Emqx:BrokerUrl"];
-            var port = int.Parse(_configuration["Emqx:port"]);
+            var port = int.Parse(_configuration["Emqx:port"]!);
             var username = _configuration["Emqx:username"];
             var password = _configuration["Emqx:Password"];
             var clientId =_configuration["Emqx:ClientId"];

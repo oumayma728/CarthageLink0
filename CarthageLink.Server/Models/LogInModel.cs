@@ -6,11 +6,13 @@ namespace CarthageLink.Server.Models
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
-        [Required]
-        [DataType(DataType.Password)]
-        public string Password { get; set; }
+        //[MinLength(8, ErrorMessage = "Password must be at least 8 characters long.")]
+        [RegularExpression(@"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$",
+        ErrorMessage = "Password must be at least 8 characters long and contain at least one letter and one number.")]
+        public required string Password { get; set; }
+
 
     }
 }

@@ -37,7 +37,7 @@ namespace CarthageLink.Server.Repositories
             }
             public async Task<License> GetLicenseByKeyAsync(string licenseKey)
             {
-                return await _license.Find(l => l.Key == licenseKey && l.Status == LicenseStatus.Active).FirstOrDefaultAsync();
+                return await _license.Find(l => l.Key == licenseKey).FirstOrDefaultAsync();
             }
             public async Task<License> GetByIdAsync(string id)
             {

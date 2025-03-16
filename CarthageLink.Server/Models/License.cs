@@ -30,7 +30,7 @@ namespace CarthageLink.Server.Models
         [BsonElement("devices")]
         public List<string> Devices { get; set; } = new List<string>();
         [BsonElement("userRole")]
-        public UserRole userRole { get; set; }
+        public UserRole UserRole { get; set; }
         [BsonElement("status")]
         public LicenseStatus Status { get; set; }
         [BsonElement("createdAt")]

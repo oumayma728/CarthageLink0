@@ -7,7 +7,7 @@ namespace CarthageLink.Server.Services
     public interface IFactoryService
     {
 
-        Task  <string> CreateFactoryAsync(Factory factory,string licenseKey);
+        Task  <string> CreateFactoryAsync(Factory factory);
         // Get all Factories
         Task<IEnumerable<Factory>> GetAllFactoriesAsync(); // returns collection (IEnumerable<User>) of User objects.
 
@@ -21,8 +21,9 @@ namespace CarthageLink.Server.Services
         Task<bool> DeleteFactoryAsync(string id);
         Task<Factory?> GetFactoryByAdminIdAsync(string adminId);
         Task<IEnumerable<Device>> GetFactoryDevicesAsync(string factoryId);
-        Task UpdateFactoryAdminIdAsync(string? factoryId, string v);
-        // Task UpdateLicenseKeyAsync(string? factoryId, string key);
+        Task UpdateFactoryAdminIdAsync(string factoryId, string adminId);
+
+
     }
 
 
@@ -39,7 +40,7 @@ namespace CarthageLink.Server.Services
         }
 
 
-        private string GenerateLicenceKey()
+        private string GenerateLicenseKey()
         {
             return Guid.NewGuid().ToString("N").ToUpper(); // Generates a random 32-character key
         }
@@ -48,14 +49,21 @@ namespace CarthageLink.Server.Services
         //private readonly List<Factory> _Factory = new List<Factory>();
 
         // Create Factory
-        public async Task <string> CreateFactoryAsync(Factory factory , string licenseKey)
+        public async Task<string> CreateFactoryAsync(Factory factory)
         {
-            string Key = GenerateLicenceKey();
-             factory.LicenseKey = Key;
-             await _factoryRepository.RegisterFactoryAsync(factory,licenseKey);
-           return Key;
+            // Generate a license key (you can customize this method to your needs)
+            string licenseKey = GenerateLicenseKey();
+            factory.LicenseKey = licenseKey;  // Assign generated key to the factory
 
+            // Register the factory (passing the factory and the generated key)
+            await _factoryRepository.RegisterFactoryAsync(factory, licenseKey);
+
+
+            // Return the generated license key
+            return licenseKey;
         }
+
+
         // Get All Factories
         public async Task<IEnumerable<Factory>> GetAllFactoriesAsync()
         {
@@ -122,8 +130,11 @@ namespace CarthageLink.Server.Services
             return await _deviceRepository.GetDevicesByFactoryIdAsync(factoryId);
         }
 
-        public Task UpdateFactoryAdminIdAsync(string? factoryId, string v)
+        public async Task UpdateFactoryAdminIdAsync(string factoryId, string adminId)
         {
-            throw new NotImplementedException();
+            await _factoryRepository.UpdateFactoryAdminIdAsync(factoryId, adminId);
         }
-    } }
+
+
+    }
+}
