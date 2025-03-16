@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react"; // Ensure you have installed lucide-react
-import './Device.css'
+import './License.css'
 
-export default function Device() {
-    const [did, setDid] = useState("");
-    const [Devices, setDevices] = useState([]); // updated to lowercase `Factories`
+export default function License() {
+    const [lid, setLid] = useState("");
+    const [Licenses, setLicenses] = useState([]); // updated to lowercase `Factories`
     const [isOpen, setIsOpen] = useState(false); // Added missing state for sidebar
 
     const handleModal = (hide) => {
@@ -19,13 +19,13 @@ export default function Device() {
     };
 
     const OpenDeleteModal = (id) => {
-    setDid(id);
+    setLid(id);
       handleModal(false); // Open the modal
     };
 
-    const DeleteDevice = () => {
-    console.log("Deleting factory with ID:", did); 
-    fetch("https://localhost:7086/api/Device/" + did, {
+    const DeleteLicense = () => {
+    console.log("Deleting factory with ID:", lid); 
+    fetch("https://localhost:7086/api/License/" + lid, {
         method: "DELETE",
     })
         .then((r) => {
@@ -38,15 +38,15 @@ export default function Device() {
           handleModal(true); // Hide the modal
         })
         .catch((e) => {
-        console.log("Error deleting a Device", e);
-        alert("Failed to delete Device.");
+        console.log("Error deleting a License", e);
+        alert("Failed to delete License.");
         });
     };
     
     
 
     useEffect(() => {
-    fetch("https://localhost:7086/api/Device", {
+    fetch("https://localhost:7086/api/License", {
         mode: "cors",
         headers: {
         "Content-Type": "application/json",
@@ -56,7 +56,7 @@ export default function Device() {
     .then(response => response.json())
     .then(data => {
         console.log("Factories fetched:", data);
-        setDevices(data);
+        setLicenses(data);
     })
     .catch(error => console.error("Fetch error:", error));
     }, []);
@@ -88,40 +88,45 @@ return (
         </a>
         </ul>
     </div>
-    <h1>Devices</h1>
+    <h1>Licenses</h1>
     <div className="btn1">
-        <a href="/AddDevice">+</a>
+        <a href="/AddLicense">+</a>
     </div>
 
     <table>
         <thead>
         <tr>
-            <th>Name</th>
-            <th>MacAddress</th>
+            <th>Key</th>
+            <th>Assinged To</th>
+            <th>Devices</th>
             <th> Status</th>
-            <th> AssignedUsers</th>
+            <th>CreatedAt</th>
+            <th>expiresAt</th>
             <th>Actions</th>
         </tr>
         </thead>
         <tbody>
-        {Devices.length === 0 ? (
+        {Licenses.length === 0 ? (
             <tr>
             <td colSpan="8" className="waiting">
                 Loading...
             </td>
             </tr>
         ) : (
-            Devices.map((Device) => (
-            <tr key={Device.id}>
-                <td>{Device.name}</td>
-                <td>{Device.MacAddress}</td>
-                <td>{Device.Status}</td>
-                <td>{Device.AssignedUsers}</td>
+            Licenses.map((License) => (
+            <tr key={License.id}>
+                <td>{License.key}</td>
+                <td>{License.assignedTo}</td>
+                <td>{License.devices}</td>
+                <td>{License.status}</td>
+                <td>{License.createdAt}</td>
+                <td>{License.expiresAt}</td>
+
                 <td>
-            <a href={`/Edit?id=${Device.id}`}>Edit</a> |{" "}
+            <a href={`/Edit?id=${License.id}`}>Edit</a> |{" "}
                 <span
                     onClick={() => {
-            OpenDeleteModal(Device.id);
+            OpenDeleteModal(License.id);
                     }}
                     style={{ cursor: "pointer", color: "red" }}>
                     Delete
@@ -135,13 +140,13 @@ return (
 
     <section className="delete-modal hidden">
         <div className="modal-item">
-        <h3>Delete Device</h3>
-        <p>Are you sure you want to delete this Device?</p>
+        <h3>Delete License</h3>
+        <p>Are you sure you want to delete this License?</p>
         <div className="row mt-20 justify-btw">
             <div className="btn cancel" onClick={() => handleModal(true)}>
             Cancel
             </div>
-            <div className="btn add" onClick={DeleteDevice}>
+            <div className="btn add" onClick={DeleteLicense}>
             Delete
             </div>
         </div>

@@ -83,6 +83,9 @@ export default function Factory() {
           <a href="/Factory">
             <li>Factories</li>
           </a>
+          <a href="/License">
+            <li>Licenses</li>
+        </a>
         </ul>
       </div>
       <h1>Factories</h1>

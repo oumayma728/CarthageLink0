@@ -68,6 +68,9 @@ export default function User() {
           <a href="/Factory">
             <li>Factories</li>
           </a>
+          <a href="/License">
+            <li>Licenses</li>
+        </a>
         </ul>
       </div>
 

@@ -38,6 +38,9 @@ export default function Main() {
           <a href="/Factory">
             <li>Factories</li>
           </a>
+          <a href="/License">
+            <li>Licenses</li>
+        </a>
         </ul>
       </div>
       <div className="carthageLink">

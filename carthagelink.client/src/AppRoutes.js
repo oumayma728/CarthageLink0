@@ -1,6 +1,5 @@
 //import App from "./App.js";
 import Home from "./components/HomePage/HomePage.js";
-//import Login from "./components/Login/login"
 import Register from "./components/register/register.js";
 import Login from "./components/Login/login.js"; 
 import Main from "./components/Main/Main.js";
@@ -9,11 +8,11 @@ import User from "./components/User/User.js";
 import Factory from "./components/Factory/Factory.js";
 import AddUser from "./components/User/AddUser.js";
 import AddFactory from "./components/Factory/AddFactory.js";
-
+import License from "./components/License/License.js"
 const AppRoutes = [
   {
     path: "/",
-    element: <Home /> // Home route
+    element: <Home /> 
   },
 
   {
@@ -39,7 +38,10 @@ const AppRoutes = [
     path:"/User",
     element:<User/>
   },
-
+  {
+    path:"/License",
+    element:<License/>
+  },
   {
     path:"/Factory",
     element:<Factory/>
