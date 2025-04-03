@@ -1,88 +1,86 @@
-﻿using MongoDB.Driver;
+﻿using CarthageLink.Server.Data;
 using CarthageLink.Server.Repositories;
 using CarthageLink.Server.Services;
-using CarthageLink.Server.Data;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using System.Text;
 using static CarthageLink.Server.Repositories.ILicenseRepository;
-
+using static CarthageLink.Server.Repositories.ISensorDataRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container.
 
-builder.Services.AddSingleton<IMQTTService, MQTTService>();
-builder.Services.AddHostedService<MqttBackgroundService>();
+// Register MQTT service
+builder.Services.AddSingleton<IMQTTService, MQTTService>(); // Changed from AddScoped
+builder.Services.AddScoped<MqttBackgroundService>(); // Add MongoDB
 
-// Configure the DatabaseSettings section in the configuration
-builder.Services.Configure<DatabaseSettings>(
-    builder.Configuration.GetSection("DatabaseSettings"));
+// Register DatabaseSettings
+builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
 
-// Register MongoClient and MongoDatabase with DI
+// Register MongoClient as Singleton
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<DatabaseSettings>>().Value;
-    return new MongoClient(settings.Connection);  // MongoClient is Singleton
+    return new MongoClient(settings.Connection); // MongoClient
 });
 
-builder.Services.AddScoped<IMongoDatabase>(sp =>
+// Register MongoDatabase as Singleton
+builder.Services.AddSingleton<IMongoDatabase>(sp =>
 {
     var mongoClient = sp.GetRequiredService<IMongoClient>();
     var settings = sp.GetRequiredService<IOptions<DatabaseSettings>>().Value;
-    return mongoClient.GetDatabase(settings.DatabaseName);  // MongoDatabase is Scoped
+    return mongoClient.GetDatabase(settings.DatabaseName); // MongoDatabase
 });
 
-// Add services to the container
+// Add JWT TokenService
+builder.Services.AddSingleton<ITokenService, TokenService>(); // stateless service, no need to use AddScoped
+
+// Add repositories, stateful services
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IFactoryRepository, FactoryRepository>();
+builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
+builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
+builder.Services.AddScoped<ISensorDataRepository, SensorDataRepository>();
+
+// Add services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IFactoryService, FactoryService>();
+builder.Services.AddScoped<ILicenseService, LicenseService>();
+builder.Services.AddScoped<IDeviceService, DeviceService>();
+builder.Services.AddScoped<ISensorDataService, SensorDataService>(); // Change from Singleton to Scoped
+
 builder.Services.AddControllers();
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
-builder.Services.AddAuthorization();
-// Add Swagger/OpenAPI support
+
+// Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddJwtBearer(options =>
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
-    });
-
-
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
 
 builder.Services.AddAuthorization();
 
-// Register the services with DI
-//Repository 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IFactoryRepository, FactoryRepository>();
-builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
-builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
-//services
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IFactoryService, FactoryService>();
-builder.Services.AddScoped<IDeviceService, DeviceService>();
-builder.Services.AddScoped<ILicenseService, LicenseService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
-
-
-// Enable CORS policy if needed
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -94,7 +92,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseDefaultFiles();
-//app.UseStaticFiles();
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {

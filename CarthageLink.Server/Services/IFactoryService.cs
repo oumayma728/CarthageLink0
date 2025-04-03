@@ -1,6 +1,8 @@
-﻿using CarthageLink.Server.Models;
+﻿using System.Security.Claims;
+using CarthageLink.Server.Models;
 using CarthageLink.Server.Repositories;
 using CarthageLink.Server.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarthageLink.Server.Services
 {
@@ -10,36 +12,32 @@ namespace CarthageLink.Server.Services
         Task  <string> CreateFactoryAsync(Factory factory);
         // Get all Factories
         Task<IEnumerable<Factory>> GetAllFactoriesAsync(); // returns collection (IEnumerable<User>) of User objects.
+        Task<IEnumerable<Device>> GetFactoryDevicesAsync(string factoryId);
 
         // Get factory by Id
-        Task<Factory> GetFactoryByIdAsync(string id);
+        Task<Factory?> GetFactoryByIdAsync(string id);
         Task<Factory?> GetFactoryByTaxNumberAsync(string number);
+        Task<Factory?> GetFactoryByAdminIdAsync(string adminId);
         // Update factory
         Task UpdateFactoryAsync(Factory factory);
+        Task UpdateFactoryAdminIdAsync(string factoryId, string adminId);
 
         // Delete factory
         Task<bool> DeleteFactoryAsync(string id);
-        Task<Factory?> GetFactoryByAdminIdAsync(string adminId);
-        Task<IEnumerable<Device>> GetFactoryDevicesAsync(string factoryId);
-        Task UpdateFactoryAdminIdAsync(string factoryId, string adminId);
-
-
     }
-
-
     // The UserService class implements IUserService
     public class FactoryService : IFactoryService
     {
         private readonly IFactoryRepository _factoryRepository;
-        private readonly IDeviceRepository _deviceRepository; 
+        private readonly IDeviceRepository _deviceRepository;
+        private readonly IUserRepository _userRepository;
 
-        public FactoryService(IFactoryRepository factoryRepository, IDeviceRepository deviceRepository) 
+        public FactoryService(IFactoryRepository factoryRepository, IDeviceRepository deviceRepository , IUserRepository  userRepository) 
         {
             _factoryRepository = factoryRepository;
-            _deviceRepository = deviceRepository; 
+            _deviceRepository = deviceRepository;
+            _userRepository = userRepository;
         }
-
-
         private string GenerateLicenseKey()
         {
             return Guid.NewGuid().ToString("N").ToUpper(); // Generates a random 32-character key
@@ -62,8 +60,7 @@ namespace CarthageLink.Server.Services
             // Return the generated license key
             return licenseKey;
         }
-
-
+      
         // Get All Factories
         public async Task<IEnumerable<Factory>> GetAllFactoriesAsync()
         {
@@ -85,11 +82,8 @@ namespace CarthageLink.Server.Services
         public async Task UpdateFactoryAsync(Factory updateFactory)
         {
             // Validate if user exists
-            var existingFactory = await _factoryRepository.GetFactoryByIdAsync(updateFactory.Id);
-            if (existingFactory == null)
-            {
-                throw new Exception("Factory not found.");
-            }
+            var existingFactory = await _factoryRepository.GetFactoryByIdAsync(updateFactory.Id) 
+                ?? throw new Exception("Factory not found.");
 
             // Update the user
             await _factoryRepository.UpdateFactoryAsync(updateFactory);
@@ -123,10 +117,9 @@ namespace CarthageLink.Server.Services
         {
             if (string.IsNullOrEmpty(factoryId))
             {
-                return new List<Device>(); // Return empty list if factory ID is invalid.
+                return []; // Return empty list if factory ID is invalid.
             }
 
-            // Query the repository to get devices for this factory
             return await _deviceRepository.GetDevicesByFactoryIdAsync(factoryId);
         }
 

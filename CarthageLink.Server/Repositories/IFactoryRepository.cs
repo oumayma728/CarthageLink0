@@ -11,12 +11,10 @@ namespace CarthageLink.Server.Repositories
         Task<IEnumerable<Factory>> GetAllFactoriesAsync();
         Task<Factory?> GetFactoryByIdAsync(string id);
         Task<Factory?> UpdateFactoryAsync(Factory factory);
-        Task <Factory?> GetFactoryByAdminIdAsync(string adminId);
+        Task<Factory?> GetFactoryByAdminIdAsync(string adminId);
         Task DeleteFactoryAsync(string FactoryId);
         Task RegisterFactoryAsync(Factory factory, string licenseKey);
         Task UpdateFactoryAdminIdAsync(string id, string adminId);
-
-        //Task UpdateLicenseKeyAsync(string id, string licenseKey);
         Task<Factory?> GetFactoryByTaxNumberAsync(string number);
     }
 
@@ -24,35 +22,35 @@ namespace CarthageLink.Server.Repositories
     {
         private readonly IMongoCollection<Factory> _Factory;
         private readonly IMongoCollection<Models.License> _License;
+        //private readonly IMongoCollection<Device> _Device;
+
 
         //Constructor
         public FactoryRepository(IOptions<DatabaseSettings> settings)
         {
             var mongoClient = new MongoClient(settings.Value.Connection);
-            var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
-            _Factory = mongoDb.GetCollection<Factory>("Factory");
-            _License = mongoDb.GetCollection<License>("License"); 
-
+            var database= mongoClient.GetDatabase(settings.Value.DatabaseName);
+            _Factory = database.GetCollection<Factory>("Factory");
+            _License = database.GetCollection<License>("License");
         }
-        public async Task RegisterFactoryAsync(Factory factory , string licenseKey)
+        public async Task RegisterFactoryAsync(Factory factory, string licenseKey)
         {
-            if (string.IsNullOrEmpty(factory.Id)) 
+            if (string.IsNullOrEmpty(factory.Id))
             {
                 factory.Id = ObjectId.GenerateNewId().ToString();
             }
             await _Factory.InsertOneAsync(factory); //register the factory first , for the license to have the factoryID
 
-
             //creates a new License object and inserts it into the License collection.
             var license = new License
             {
                 Key = licenseKey,
-               AssignedTo = factory.Id,
+                AssignedTo = factory.Id,
                 FactoryId = factory.Id,
-               Devices = factory.AssignedDevices,
+                Devices = factory.AssignedDevices,
                 Status = LicenseStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt= DateTime.UtcNow.AddYears(5)
+                ExpiresAt = DateTime.UtcNow.AddYears(5)
             };
 
 
@@ -60,19 +58,19 @@ namespace CarthageLink.Server.Repositories
         }
         public async Task<IEnumerable<Factory>> GetAllFactoriesAsync()
         {
-           return  await _Factory.Find(factory => true).ToListAsync();
-            
+            return await _Factory.Find(factory => true).ToListAsync();
+
         }
         public async Task<Factory?> GetFactoryByIdAsync(string id)
         {
-            return   await _Factory.Find(f => f.Id == id).FirstOrDefaultAsync();
-           
+            return await _Factory.Find(f => f.Id == id).FirstOrDefaultAsync();
+
         }
         public async Task<Factory?> GetFactoryByTaxNumberAsync(string number)
         {
             return await _Factory.Find(f => f.TaxNumber == number).FirstOrDefaultAsync();
         }
-        
+
         public async Task<Factory?> GetFactoryByAdminIdAsync(string adminId)
         {
             return await _Factory.Find(factory => factory.FactoryAdminId == adminId).FirstOrDefaultAsync();
@@ -80,7 +78,7 @@ namespace CarthageLink.Server.Repositories
 
         public async Task<Factory?> UpdateFactoryAsync(Factory factory)
         {
-            var filter = Builders<Factory>.Filter.Eq(f => f.Id, factory.Id); 
+            var filter = Builders<Factory>.Filter.Eq(f => f.Id, factory.Id);
             var update = Builders<Factory>.Update
                 .Set(f => f.Name, factory.Name)
                 .Set(f => f.Description, factory.Description)
@@ -90,7 +88,7 @@ namespace CarthageLink.Server.Repositories
                 .Set(f => f.AssignedDevices, factory.AssignedDevices);
 
             // Perform the update
-            await _Factory.UpdateOneAsync(filter, update); 
+            await _Factory.UpdateOneAsync(filter, update);
             return await _Factory.Find(filter).FirstOrDefaultAsync();
         }
 
@@ -107,7 +105,7 @@ namespace CarthageLink.Server.Repositories
             var filter = Builders<Factory>.Filter.Eq(u => u.Id, factoryId);
             await _Factory.DeleteOneAsync(filter);
         }
-        
+
 
     }
 }

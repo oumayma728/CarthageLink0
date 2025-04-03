@@ -80,7 +80,20 @@ namespace CarthageLink.Server.Controllers
             await _deviceService.UpdateDeviceAsync(updatedDevice);
             return Ok("Device updated successfully.");
         }
+       /* [HttpGet("devices/by-factory/{factoryId}")]
+        public async Task<IActionResult> GetDevicesByFactory(int factoryId)
+        {
+            var loggedInFactoryId = User.FindFirst("FactoryId")?.Value; // Get FactoryId from the token
 
+            if (loggedInFactoryId != factoryId.ToString())
+            {
+                return Forbid(); // Deny access if the FactoryId doesn't match
+            }
+
+            var devices = await _deviceService.GetDevicesByFactoryAsync(factoryId);
+            return Ok(devices);
+        }
+       */
         // DELETE api/<DeviceController>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDevice(string id)

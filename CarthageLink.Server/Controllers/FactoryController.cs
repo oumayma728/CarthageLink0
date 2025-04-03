@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CarthageLink.Server.Services;
 using CarthageLink.Server.Models;
-using CarthageLink.Server.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace CarthageLink.Server.Controllers
@@ -63,8 +59,21 @@ namespace CarthageLink.Server.Controllers
                 licenseKey = licenseKey  // Return the generated license key
             });
         }
+/* [HttpGet("factory/devices")]
+         public async Task<IActionResult> GetFactoryDevices()
+         {
+             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+             var user = await _userRepository.GetByIdAsync(userId);
 
+             if (user == null || user.Role != "FactoryAdmin")
+             {
+                 return Unauthorized();
+             }
 
+             var devices = await _deviceRepository.GetByFactoryIdAsync(user.FactoryId);
+             return Ok(devices);
+         }
+         */
         // PUT api/Factory/{id}
         [HttpPut("{id}")]
         //[Authorize(Roles = "SuperAdmin")]
@@ -82,43 +91,7 @@ namespace CarthageLink.Server.Controllers
             return Ok("Factory updated successfully.");
         }
 
-        [HttpPut("my-factory")]
-        //[Authorize(Roles = "FactoryAdmin")]
-        public async Task<IActionResult> UpdateMyFactory([FromBody] Factory updatedFactory)
-        {
-            //This retrieves the FactoryAdmin's ID from the JWT (JSON Web Token).
-            var factoryAdminId = User.FindFirst("FactoryAdmin")?.Value;
-
-            if (factoryAdminId == null)
-            {
-                return Unauthorized("FactoryAdmin ID not found.");
-            }
-
-            // 🔹 Retrieve the factory associated with this FactoryAdmin
-            var existingFactory = await _factoryService.GetFactoryByAdminIdAsync(factoryAdminId);
-
-            if (existingFactory == null)
-            {
-                return NotFound("Factory not found for this admin.");
-            }
-
-            // 🔹 Ensure the updated factory's ID matches the existing factory's ID
-            if (updatedFactory.Id != existingFactory.Id)
-            {
-                return BadRequest("Factory ID mismatch.");
-            }
-
-            // 🔹 Update the factory (the FactoryAdmin can only modify their own factory)
-            updatedFactory.Id = existingFactory.Id; // Maintain the same factory ID
-            updatedFactory.FactoryAdminId = factoryAdminId;  // Ensure the owner is still the FactoryAdmin
-
-            // 🔹 Update the factory in the database
-            await _factoryService.UpdateFactoryAsync(updatedFactory);
-
-            return Ok("Factory updated successfully.");
-        }
-
-
+       
         // DELETE api/Factory/{id}
         [HttpDelete("{id}")]
         //[Authorize(Roles = "SuperAdmin")]
@@ -136,23 +109,23 @@ namespace CarthageLink.Server.Controllers
         //[Authorize(Roles = "SuperAdmin,FactoryAdmin")]
         public async Task<ActionResult<List<Device>>> GetFactoryDevices(string id)
         {
-            // 🔹 Check if the factory exists
+            // Check if the factory exists
             var factory = await _factoryService.GetFactoryByIdAsync(id);
             if (factory == null)
             {
                 return NotFound($"Factory with id {id} not found.");
             }
 
-            // 🔹 Get the logged-in user's role and ID
+            /*Get the logged-in user's role and ID
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             var adminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // 🔹 If Factory Admin, ensure they only access their assigned factory
+            If Factory Admin, ensure they only access their assigned factory
             if (userRole == "FactoryAdmin" && factory.FactoryAdminId != adminId)
             {
                 return Forbid("You can only access devices from your own factory.");
             }
-
+            */
             try
             {
                 var devices = await _factoryService.GetFactoryDevicesAsync(id);

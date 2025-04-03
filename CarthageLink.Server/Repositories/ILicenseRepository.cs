@@ -25,8 +25,8 @@ namespace CarthageLink.Server.Repositories
             public LicenseRepository(IOptions<DatabaseSettings> settings)
             {
                 var mongoClient = new MongoClient(settings.Value.Connection);
-                var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
-                _license = mongoDb.GetCollection<License>("License");
+                var database = mongoClient.GetDatabase(settings.Value.DatabaseName);
+                _license = database.GetCollection<License>("License");
 
             }
             public async Task CreateLicenseAsync(License license)

@@ -5,10 +5,11 @@ import Login from "./components/Login/login.js";
 import Main from "./components/Main/Main.js";
 import Device from "./components/Device/Device.js";
 import User from "./components/User/User.js";
-import Factory from "./components/Factory/Factory.js";
+import Factory from "./components/Factory/FactoryPage.js";
 import AddUser from "./components/User/AddUser.js";
 import AddFactory from "./components/Factory/AddFactory.js";
-import License from "./components/License/License.js"
+import License from "./components/License/License.js";
+import NotFoundPage from "./components/NotFound.js";
 const AppRoutes = [
   {
     path: "/",
@@ -18,6 +19,10 @@ const AppRoutes = [
   {
     path: "/main",
     element: <Main /> 
+  },
+  {
+    path: "/NotFoundPage",
+    element: <NotFoundPage /> 
   },
 
   {
@@ -54,6 +59,7 @@ const AppRoutes = [
     path: "/add-factory",
     element: <AddFactory /> 
   },
+  
 ];
 
 export default AppRoutes;

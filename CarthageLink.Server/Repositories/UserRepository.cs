@@ -29,9 +29,9 @@ namespace CarthageLink.Server.Repositories
         public UserRepository(IOptions<DatabaseSettings> settings)
         {
             var mongoClient = new MongoClient(settings.Value.Connection);
-            var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
-            _user = mongoDb.GetCollection<User>("User");
-            _License = mongoDb.GetCollection<License>("License");
+            var database = mongoClient.GetDatabase(settings.Value.DatabaseName);
+            _user = database.GetCollection<User>("User");
+            _License = database.GetCollection<License>("License");
 
         }
         public async Task<IEnumerable<User>> GetAllUsersAsync()
@@ -110,26 +110,9 @@ namespace CarthageLink.Server.Repositories
             }
         }
 
-     
+  
 
-        // ✅ Secure Password Hashing with BCrypt
-        private string HashPassword(string password)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(password))
-                    throw new ArgumentException("Password cannot be null or empty.", nameof(password));
-
-                return BCrypt.Net.BCrypt.HashPassword(password);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                throw new Exception("Failed to hash password.", ex);
-            }
-        }
-
-        // ✅ Secure Password Verification with BCrypt
+        //  Secure Password Verification with BCrypt
         private bool VerifyPassword(string password, string hashedPassword)
         {
             try

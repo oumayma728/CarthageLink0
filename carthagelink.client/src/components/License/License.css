@@ -1,4 +1,4 @@
-/* General Styles */
+/* General Styles *
 body {
     font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
     background-color: #f4f4f4;
@@ -47,7 +47,6 @@ body {
     background-color: #e8f8e1;
   }
   
-  /* Button Styles */
   button {
     padding: 12px 25px;
     font-size: 1rem;
@@ -91,7 +90,6 @@ body {
     padding-bottom: 10px;
   }
   
-  /* Modal Styles */
   .delete-modal {
     position: fixed;
     top: 0;
@@ -131,7 +129,6 @@ body {
     color: white;
   }
   
-  /* Input Group */
   .nw {
     margin-bottom: 20px;
   }
@@ -146,7 +143,6 @@ body {
     background-color: #f9f9f9;
   }
   
-  /* Form Styling */
   input, select {
     margin-left: 10px;
     border: 1px solid #ddd;
@@ -169,12 +165,10 @@ body {
     border-color: #4CAF50;
   }
   
-  /* Hover Effects for Buttons */
   .btn:hover {
     transform: scale(1.05);
   }
   
-  /* Responsiveness */
   @media (max-width: 600px) {
     .new {
       width: 90%;
@@ -188,5 +182,4 @@ body {
       width: 100%;
       margin-bottom: 10px;
     }
-  }
-  
+  }*/

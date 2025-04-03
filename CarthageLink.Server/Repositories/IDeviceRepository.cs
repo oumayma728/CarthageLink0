@@ -26,8 +26,8 @@ namespace CarthageLink.Server.Repositories
         public DeviceRepository (IOptions<DatabaseSettings> settings)
         {
             var mongoClient = new MongoClient(settings.Value.Connection);
-            var mongoDb = mongoClient.GetDatabase(settings.Value.DatabaseName);
-            _device = mongoDb.GetCollection<Device>("Device");
+            var database = mongoClient.GetDatabase(settings.Value.DatabaseName);
+            _device = database.GetCollection<Device>("Devices");
 
         }
 

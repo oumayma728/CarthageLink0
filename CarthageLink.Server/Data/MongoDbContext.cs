@@ -33,7 +33,7 @@ namespace CarthageLink.Server.Data
         public IMongoCollection<Factory> Factory => _database.GetCollection<Factory>("Factory");
         public IMongoCollection<Device> Device => _database.GetCollection<Device>("Device");
         public IMongoCollection<License> License => _database.GetCollection<License>("License");
-        //public IMongoCollection<SensorData> SensorData => _database.GetCollection<SensorData>("SensorData");
+        public IMongoCollection<SensorData> SensorData => _database.GetCollection<SensorData>("SensorData");
 
     }
 }

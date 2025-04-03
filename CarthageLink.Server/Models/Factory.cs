@@ -23,6 +23,8 @@ namespace CarthageLink.Server.Models
 
         [BsonElement("licenseKey")]
         public string? LicenseKey { get; set; }
+        [BsonElement("CreatedAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     }
 }

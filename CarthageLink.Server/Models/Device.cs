@@ -10,7 +10,7 @@ namespace CarthageLink.Server.Models
             Inactive,
             Maintenance
         }
-
+        
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
@@ -26,6 +26,8 @@ namespace CarthageLink.Server.Models
         [BsonElement("AssignedUsers")]
         [BsonRepresentation(BsonType.ObjectId)]
         public List<string>? AssignedUsers{ get; set; }
+        [BsonElement("LastConnected")]
+        public DateTime? LastConnected { get; set; } = DateTime.UtcNow;
 
     }
 }

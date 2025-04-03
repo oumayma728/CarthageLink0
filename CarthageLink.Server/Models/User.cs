@@ -47,6 +47,8 @@ namespace CarthageLink.Server.Models
         public string? LicenseKey { get; set; }
         [BsonElement("factoryname")]
         public string? FactoryName { get; set; }
+        [BsonElement("CreatedAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     }
 }

@@ -21,7 +21,7 @@ namespace CarthageLink.Server.Models
 
         [BsonElement("assignedTo")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? AssignedTo { get; set; } // Nullable
+        public string? AssignedTo { get; set; }
 
         [BsonElement("factoryId")]
         [BsonRepresentation(BsonType.ObjectId)]

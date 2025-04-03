@@ -76,6 +76,18 @@ namespace CarthageLink.Server.Controllers
             return Ok(new { message = "User created successfully", licenseKey });
         }
         */
+       /* public async Task<IActionResult> GetUsersByFactory(int factoryId)
+        {
+            var loggedInFactoryId = User.FindFirst("FactoryId")?.Value; // Get FactoryId from the token
+
+            if (loggedInFactoryId != factoryId.ToString())
+            {
+                return Forbid(); // Deny access if the FactoryId doesn't match
+            }
+
+            var users = await _userService.GetUsersByFactoryAsync(factoryId);
+            return Ok(users);
+        }*/
 
         // Get User by Id
         [HttpGet("{id:length(24)}")] 
