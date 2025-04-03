@@ -2,55 +2,23 @@ import { useState, useEffect } from "react";
 import { Menu, X, Cpu, Key, Users, Wifi, Factory, Edit3, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "../themeToggle.js";
-
+import useFactories from "../../hooks/useFactories.js";
 export default function FactoryPage() {
-  const [fid, setFid] = useState("");
-  const [factories, setFactories] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedFactoryId, setSelectedFactoryId] = useState(null);
 
-  const fetchFactories = () => {
-    setIsLoading(true);
-    fetch("https://localhost:7086/api/Factory", {
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-    })
-      .then(response => response.json())
-      .then(data => {
-        setFactories(data);
-        setIsLoading(false);
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
+  const { factories, isLoading, deleteFactory ,fetchFactories,error} = useFactories();
+
+//Handle the delete confirmation 
+const HandleDelete=async()=>{
+  try{
+    await deleteFactory(selectedFactoryId);
+    setIsDeleteModalOpen(false);}
+    catch(err){
+      console.error("Delete error:" ,err )
+    }
   };
-
-  const openDeleteModal = (id) => {
-    setFid(id);
-    setIsModalOpen(true);
-  };
-
-  const handleDeleteFactory = () => {
-    fetch(`https://localhost:7086/api/Factory/${fid}`, { method: "DELETE" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Delete failed");
-        return res.json();
-      })
-      .then(() => {
-        setIsModalOpen(false);
-        fetchFactories();
-      })
-      .catch((err) => {
-        console.error("Error deleting factory:", err);
-        alert("Failed to delete factory.");
-      });
-  };
-
-  useEffect(() => fetchFactories(), []);
-
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
       {/* Theme Toggle */}

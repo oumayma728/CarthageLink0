@@ -76,24 +76,44 @@ namespace CarthageLink.Server.Controllers
                 return NotFound($"Device with id {id} not found.");
             }
 
-            updatedDevice.Id = id;
-            await _deviceService.UpdateDeviceAsync(updatedDevice);
-            return Ok("Device updated successfully.");
-        }
-       /* [HttpGet("devices/by-factory/{factoryId}")]
-        public async Task<IActionResult> GetDevicesByFactory(int factoryId)
-        {
-            var loggedInFactoryId = User.FindFirst("FactoryId")?.Value; // Get FactoryId from the token
-
-            if (loggedInFactoryId != factoryId.ToString())
+            // Update the device status if it is being changed
+            if (!string.IsNullOrEmpty(updatedDevice.Status) && updatedDevice.Status != existingDevice.Status)
             {
-                return Forbid(); // Deny access if the FactoryId doesn't match
+                // Validate the status to ensure it's a valid value
+                if (!Enum.IsDefined(typeof(Device.DeviceStatus), updatedDevice.Status))
+                {
+                    return BadRequest("Invalid status value.");
+                }
+
+                existingDevice.Status = updatedDevice.Status;  // Update the status
             }
 
-            var devices = await _deviceService.GetDevicesByFactoryAsync(factoryId);
-            return Ok(devices);
+            // Update other device fields
+            existingDevice.Name = updatedDevice.Name ?? existingDevice.Name;
+            existingDevice.MacAddress = updatedDevice.MacAddress ?? existingDevice.MacAddress;
+            existingDevice.AssignedUsers = updatedDevice.AssignedUsers ?? existingDevice.AssignedUsers;
+            existingDevice.LastConnected = updatedDevice.LastConnected ?? existingDevice.LastConnected;
+
+            // Save the updated device
+            await _deviceService.UpdateDeviceAsync(existingDevice);
+
+            return Ok("Device updated successfully.");
         }
-       */
+
+        /* [HttpGet("devices/by-factory/{factoryId}")]
+         public async Task<IActionResult> GetDevicesByFactory(int factoryId)
+         {
+             var loggedInFactoryId = User.FindFirst("FactoryId")?.Value; // Get FactoryId from the token
+
+             if (loggedInFactoryId != factoryId.ToString())
+             {
+                 return Forbid(); // Deny access if the FactoryId doesn't match
+             }
+
+             var devices = await _deviceService.GetDevicesByFactoryAsync(factoryId);
+             return Ok(devices);
+         }
+        */
         // DELETE api/<DeviceController>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDevice(string id)

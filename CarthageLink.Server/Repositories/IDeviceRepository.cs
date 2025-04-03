@@ -49,7 +49,6 @@ namespace CarthageLink.Server.Repositories
         {
             await _device.InsertOneAsync(device);
         }
-      
         public async Task UpdateDeviceAsync(Device updatedDevice)
         {
             var filter = Builders<Device>.Filter.Eq(d => d.Id, updatedDevice.Id); // Creates a filter to find the user by their ID

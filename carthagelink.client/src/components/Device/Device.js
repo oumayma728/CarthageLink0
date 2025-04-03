@@ -9,6 +9,7 @@ export default function Device() {
     const [devices, setDevices] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [did, setDid] = useState(null);
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [updatingStatusId, setUpdatingStatusId] = useState(null);
@@ -58,11 +59,7 @@ export default function Device() {
                 alert("Failed to delete Device.");
             });
     };
-
-    const updateDeviceStatus = (id, currentStatus) => {
-        setUpdatingStatusId(id);
-        
-        // Determine next status in the cycle
+    const updateDeviceStatus = (did, currentStatus) => {
         let newStatus;
         switch(currentStatus) {
             case "Active":
@@ -77,8 +74,8 @@ export default function Device() {
             default:
                 newStatus = "Active";
         }
-
-        fetch(`https://localhost:7086/api/Device/${id}/status`, {
+    
+        fetch(`https://localhost:7086/api/Device/${did}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -90,17 +87,14 @@ export default function Device() {
             return response.json();
         })
         .then(() => {
-            fetchDevices(); // Refresh the list
+            fetchDevices(); // Refresh the list after updating the status
         })
         .catch(error => {
             console.error("Update error:", error);
             alert("Failed to update status");
-        })
-        .finally(() => {
-            setUpdatingStatusId(null);
         });
     };
-
+    
     const getStatusStyles = (status) => {
         switch(status) {
             case "Active":
