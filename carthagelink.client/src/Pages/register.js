@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ThemeToggle from "../themeToggle.js";
+import ThemeToggle from "../components/themeToggle.js";
+import { useAuth } from"../contexts/AuthContext.js";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -10,14 +11,16 @@ const RegisterForm = () => {
     password: "",
     confirmPassword: "",
     licenseKey: "",
-    role: "FactoryAdmin" // Default role
+    role: "FactoryAdmin"
   });
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,7 +30,6 @@ const RegisterForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Add client-side validation
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
       return;
@@ -37,31 +39,15 @@ const RegisterForm = () => {
     setError("");
     
     try {
-      const response = await fetch("https://localhost:7086/api/User/register-user", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json" 
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          role: formData.role,
-          licenseKey: formData.licenseKey
-        }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
+      const result = await register(formData);
+      
+      if (result.success) {
+        navigate("/login", { state: { registrationSuccess: true } });
+      } else {
+        setError(result.error || "Registration failed. Please try again.");
       }
-  
-      navigate("/login");
     } catch (error) {
-      console.error("Registration error:", error);
-      setError(error.message || "Registration failed. Please try again.");
+      setError("Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

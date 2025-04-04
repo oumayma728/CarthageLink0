@@ -1,65 +1,115 @@
-//import App from "./App.js";
+import { lazy } from 'react';
+import { ProtectedRoute} from './components/ProtectedRoutes/ProtectedRoute.js'; // Fixed import path
 import Home from "./components/HomePage/HomePage.js";
-import Register from "./components/register/register.js";
-import Login from "./components/Login/login.js"; 
-import Main from "./components/Main/Main.js";
-import Device from "./components/Device/Device.js";
-import User from "./components/User/User.js";
-import Factory from "./components/Factory/FactoryPage.js";
-import AddUser from "./components/User/AddUser.js";
-import AddFactory from "./components/Factory/AddFactory.js";
-import License from "./components/License/License.js";
+import Register from "./Pages/register.js";
+import Login from "./Pages/login.js"; 
 import NotFoundPage from "./components/NotFound.js";
+
+// Lazy load dashboard components for better performance
+const Main = lazy(() => import("./Pages/dashboard/DashboardPage.jsx"));
+const DevicePage = lazy(() => import("./Pages/dashboard/DevicePage.jsx"));
+const UserPage = lazy(() => import("./Pages/dashboard/UserPage.jsx"));
+const Factory = lazy(() => import("./Pages/dashboard/FactoryPage.jsx"));
+const License = lazy(() => import("./Pages/dashboard/LicensePage.jsx"));
+const AddUser = lazy(() => import("./components/User/AddUser.js"));
+const AddFactory = lazy(() => import("./components/Factory/AddFactory.js"));
+
 const AppRoutes = [
+  // Public routes (no authentication required)
   {
     path: "/",
     element: <Home /> 
   },
-
   {
-    path: "/main",
-    element: <Main /> 
+    path: "/login",
+    element: <Login />
+  },
+  {
+    path: "/register",
+    element: <Register />
   },
   {
     path: "/NotFoundPage",
     element: <NotFoundPage /> 
   },
 
+  // Protected routes (require authentication)
   {
-    path:"/register",
-    element:<Register/>
-  },
-
-  {
-    path:"/login",
-    element:<Login/>
+    path: "/main",
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <Main />
+      }
+    ]
   },
   {
     path: "/Device",
-    element: <Device /> 
-  },
-
-  {
-    path:"/User",
-    element:<User/>
-  },
-  {
-    path:"/License",
-    element:<License/>
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <DevicePage />
+      }
+    ]
   },
   {
-    path:"/Factory",
-    element:<Factory/>
+    path: "/User",
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <UserPage />
+      }
+    ]
+  },
+  {
+    path: "/License",
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <License />
+      }
+    ]
+  },
+  {
+    path: "/Factory",
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <Factory />
+      }
+    ]
   },
   {
     path: "/add-user",
-    element: <AddUser /> 
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <AddUser />
+      }
+    ]
   },
   {
     path: "/add-factory",
-    element: <AddFactory /> 
+    element: <ProtectedRoute />,
+    children: [
+      {
+        index: true,
+        element: <AddFactory />
+      }
+    ]
   },
-  
+
+  // Fallback route for 404 errors
+  {
+    path: "*",
+    element: <NotFoundPage />
+  }
 ];
 
 export default AppRoutes;

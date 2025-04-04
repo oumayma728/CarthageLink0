@@ -50,12 +50,13 @@ namespace CarthageLink.Server.Services
             var existingDevice = await _deviceRepository.GetDeviceByIdAsync(updatedDevice.Id);
             if (existingDevice == null)
             {
-                throw new Exception("Factory not found.");
+                throw new Exception("Device not found.");
             }
 
-            // Update the user
+            // Update the device fields with the new values
             await _deviceRepository.UpdateDeviceAsync(updatedDevice);
         }
+
         public async Task DeleteDeviceAsync(string DeviceId)
            {    await GetDeviceByIdAsync(DeviceId);
 

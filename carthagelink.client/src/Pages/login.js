@@ -1,6 +1,7 @@
-import { useState} from "react";
-import { useNavigate } from "react-router-dom";
-import ThemeToggle from "../themeToggle.js"; // Import your ThemeToggle component
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import ThemeToggle from "../components/themeToggle.js";
+import { useAuth } from"../contexts/AuthContext.js";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -10,7 +11,12 @@ const LoginForm = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  const from = location.state?.from?.pathname || "/main";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,21 +24,12 @@ const LoginForm = () => {
     setError("");
     
     try {
-      const response = await fetch("https://localhost:7086/api/User/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("userRole", data.role);
-        if (rememberMe) {
-          localStorage.setItem("rememberedEmail", email);
-        }
-        navigate("/main");
+      const result = await login({ email, password, rememberMe });
+      
+      if (result.success) {
+        navigate(from, { replace: true });
       } else {
-        setError("Invalid credentials, please try again.");
+        setError(result.error || "Invalid credentials, please try again.");
       }
     } catch {
       setError("Something went wrong, please try again.");
@@ -40,7 +37,6 @@ const LoginForm = () => {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 dark:bg-gray-900">
       {/* Theme Toggle positioned top-right */}

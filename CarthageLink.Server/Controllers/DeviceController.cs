@@ -68,7 +68,7 @@ namespace CarthageLink.Server.Controllers
 
         // PUT api/<DeviceController>/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDevice(string id, [FromBody] Device updatedDevice)
+        public async Task<IActionResult> UpdateDevice(string id, [FromBody] Device updatedFields)
         {
             var existingDevice = await _deviceService.GetDeviceByIdAsync(id);
             if (existingDevice == null)
@@ -76,29 +76,31 @@ namespace CarthageLink.Server.Controllers
                 return NotFound($"Device with id {id} not found.");
             }
 
-            // Update the device status if it is being changed
-            if (!string.IsNullOrEmpty(updatedDevice.Status) && updatedDevice.Status != existingDevice.Status)
+            // Update only the fields that are provided
+            if (!string.IsNullOrEmpty(updatedFields.Status))
             {
-                // Validate the status to ensure it's a valid value
-                if (!Enum.IsDefined(typeof(Device.DeviceStatus), updatedDevice.Status))
-                {
-                    return BadRequest("Invalid status value.");
-                }
-
-                existingDevice.Status = updatedDevice.Status;  // Update the status
+                existingDevice.Status = updatedFields.Status;
             }
 
-            // Update other device fields
-            existingDevice.Name = updatedDevice.Name ?? existingDevice.Name;
-            existingDevice.MacAddress = updatedDevice.MacAddress ?? existingDevice.MacAddress;
-            existingDevice.AssignedUsers = updatedDevice.AssignedUsers ?? existingDevice.AssignedUsers;
-            existingDevice.LastConnected = updatedDevice.LastConnected ?? existingDevice.LastConnected;
+            if (!string.IsNullOrEmpty(updatedFields.MacAddress))
+            {
+                existingDevice.MacAddress = updatedFields.MacAddress;
+            }
+
+            if (!string.IsNullOrEmpty(updatedFields.Name))
+            {
+                existingDevice.Name = updatedFields.Name;
+            }
+
+            // Update any other fields as needed
 
             // Save the updated device
             await _deviceService.UpdateDeviceAsync(existingDevice);
 
             return Ok("Device updated successfully.");
         }
+
+
 
         /* [HttpGet("devices/by-factory/{factoryId}")]
          public async Task<IActionResult> GetDevicesByFactory(int factoryId)

@@ -1,28 +1,51 @@
-// src/App.js
-import  { Component } from 'react';
+import { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import AppRoutes from './AppRoutes.js';
 import './index.css';
 import { DarkModeProvider } from './DarkModeContext.js';
+import { AuthProvider } from './contexts/AuthContext.js';
+import LoadingSpinner from './components/common/LoadingSpinner.jsx';
 
-
-export default class App extends Component {
-  static displayName = App.name;
-
-  render() {
-    return (
-      <div className="App">
-            <DarkModeProvider>
-
-        <Routes>
-          {AppRoutes.map((route, index) => {
-            const { element, ...rest } = route;
-            return <Route key={index} {...rest} element={element} />;
-          })}
-        </Routes>
-        </DarkModeProvider>
-
-      </div>
-    );
-  }
+function App() {
+  return (
+    <div className="App">
+      <DarkModeProvider>
+        <AuthProvider>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              {AppRoutes.map((route, index) => {
+                if (route.children) {
+                  return (
+                    <Route
+                      key={index}
+                      path={route.path}
+                      element={route.element}
+                    >
+                      {route.children.map((child, childIndex) => (
+                        <Route
+                          key={childIndex}
+                          index={child.index}
+                          path={child.path}
+                          element={child.element}
+                        />
+                      ))}
+                    </Route>
+                  );
+                }
+                return (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    element={route.element}
+                  />
+                );
+              })}
+            </Routes>
+          </Suspense>
+        </AuthProvider>
+      </DarkModeProvider>
+    </div>
+  );
 }
+
+export default App;
